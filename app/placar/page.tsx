@@ -33,8 +33,6 @@ export default function PlacarPage() {
   const [countdown, setCountdown] = useState(0) // 5→4→3→2→1 before reveal starts
   const revealStartedRef = useRef(false)
 
-  const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
   const fetchScores = useCallback(async () => {
     const res = await fetch('/api/scores')
     const data = await res.json()
@@ -56,19 +54,14 @@ export default function PlacarPage() {
     fetchSettings()
   }, [fetchScores, fetchSettings])
 
-  // 10s refresh loop — kept in ref so we can kill it
+  // 10s refresh loop — runs forever; also polls settings so it catches result_revealed changes
   useEffect(() => {
-    refreshRef.current = setInterval(fetchScores, 10000)
-    return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
-  }, [fetchScores])
-
-  // Kill refresh loop when reveal finishes
-  useEffect(() => {
-    if (revealStep >= 10 && refreshRef.current) {
-      clearInterval(refreshRef.current)
-      refreshRef.current = null
-    }
-  }, [revealStep])
+    const id = setInterval(() => {
+      fetchScores()
+      fetchSettings()
+    }, 10000)
+    return () => clearInterval(id)
+  }, [fetchScores, fetchSettings])
 
   // Advance dramatic reveal steps
   useEffect(() => {
