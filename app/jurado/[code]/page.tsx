@@ -79,6 +79,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
   const [scores, setScores] = useState<Record<string, ScoreState>>({})
   const [submitting, setSubmitting] = useState<string | null>(null)
   const [votingOpen, setVotingOpen] = useState(true)
+  const [judgeLabel, setJudgeLabel] = useState<string | null>(null)
   const [judgeEvent, setJudgeEvent] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [expired, setExpired] = useState(false)
@@ -91,7 +92,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
       return
     }
 
-    const judgeData: { votes: Vote[]; event_date: string | null } = await votesRes.json()
+    const judgeData: { votes: Vote[]; event_date: string | null; label: string | null } = await votesRes.json()
     const [attrsData, settingsData]: [Attraction[], Record<string, string>] =
       await Promise.all([
         fetch('/api/attractions').then(r => r.json()),
@@ -102,6 +103,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
 
     setValid(true)
     setVotingOpen(settingsData.voting_open === 'true')
+    setJudgeLabel(judgeData.label ?? null)
     setJudgeEvent(ev)
     setAttractions(attrsData.filter((a: Attraction) => a.event_date === ev))
     setVotes(judgeData.votes)
@@ -208,6 +210,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
       <div className="max-w-xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-bold">Painel do Jurado</h1>
+          {judgeLabel && <p className="text-base font-semibold mt-0.5">{judgeLabel}</p>}
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge variant="secondary" className="font-mono">{code}</Badge>
             {expired && <Badge variant="destructive">Votação encerrada</Badge>}

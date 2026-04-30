@@ -10,7 +10,7 @@ export async function GET(
 
   const { data: judge } = await supabase
     .from('judges')
-    .select('id, event_date')
+    .select('id, event_date, label')
     .eq('code', code)
     .single()
 
@@ -21,5 +21,5 @@ export async function GET(
     .select('*')
     .eq('judge_id', judge.id)
 
-  return NextResponse.json({ votes: votes ?? [], event_date: judge.event_date })
+  return NextResponse.json({ votes: votes ?? [], event_date: judge.event_date, label: judge.label })
 }
