@@ -433,6 +433,19 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
+                    <Label>Link da plateia</Label>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/placar`)
+                        toast.success('Link copiado!')
+                      }}
+                    >
+                      📋 Copiar link /placar
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
                     <Label>Vencedor (plateia)</Label>
                     <Button
                       variant={resultRevealed ? 'default' : 'outline'}
