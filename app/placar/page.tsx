@@ -56,7 +56,7 @@ export default function PlacarPage() {
   }, [])
 
   // Display order
-  const displayScores = revealed
+  const displayScores = (revealed || scoresRevealed)
     ? [...scores].sort((a, b) => b.total_score - a.total_score)
     : [...scores].sort((a, b) => a.ordem - b.ordem)
 
