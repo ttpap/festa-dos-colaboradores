@@ -49,38 +49,39 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* BZ Brand — Light Festive: pale sky bg + cyan-to-blue primary */
+  --background: oklch(0.985 0.015 220);
+  --foreground: oklch(0.18 0.04 255);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.04 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.18 0.04 255);
+  --primary: oklch(0.62 0.19 230);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.025 220);
+  --secondary-foreground: oklch(0.25 0.06 255);
+  --muted: oklch(0.95 0.018 220);
+  --muted-foreground: oklch(0.45 0.06 240);
+  --accent: oklch(0.93 0.04 215);
+  --accent-foreground: oklch(0.22 0.06 255);
+  --destructive: oklch(0.6 0.22 25);
+  --border: oklch(0.88 0.025 220);
+  --input: oklch(0.92 0.02 220);
+  --ring: oklch(0.62 0.19 230);
+  --chart-1: oklch(0.65 0.2 215);
+  --chart-2: oklch(0.6 0.18 235);
+  --chart-3: oklch(0.55 0.16 265);
+  --chart-4: oklch(0.7 0.16 80);
+  --chart-5: oklch(0.65 0.22 340);
   --radius: 0.75rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.98 0.015 220);
+  --sidebar-foreground: oklch(0.18 0.04 255);
+  --sidebar-primary: oklch(0.62 0.19 230);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.93 0.04 215);
+  --sidebar-accent-foreground: oklch(0.22 0.06 255);
+  --sidebar-border: oklch(0.88 0.025 220);
+  --sidebar-ring: oklch(0.62 0.19 230);
 }
 
 .dark {
@@ -124,10 +125,20 @@
 }
 
 .bz-gradient-text {
-  background: linear-gradient(135deg, #00C9FF 0%, #92B8FF 100%);
+  background: linear-gradient(135deg, #00B4E6 0%, #0052D4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Soft confetti dots — used on phase-0 and final scoreboard backgrounds */
+.bz-festive-bg {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(0,201,255,0.18) 0%, transparent 35%),
+    radial-gradient(circle at 88% 22%, rgba(255,200,80,0.18) 0%, transparent 35%),
+    radial-gradient(circle at 78% 82%, rgba(0,82,212,0.14) 0%, transparent 35%),
+    radial-gradient(circle at 18% 88%, rgba(255,120,200,0.14) 0%, transparent 35%),
+    oklch(0.985 0.015 220);
 }
 
 /* ── Scoreboard card entrance animation ── */

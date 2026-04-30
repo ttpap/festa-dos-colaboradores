@@ -475,9 +475,8 @@ export default function AdminPage() {
                         <tr className="border-b">
                           <th className="text-left py-2 pr-4 font-medium">Atração</th>
                           {adminScores.judges.map(j => (
-                            <th key={j.id} className="text-center py-2 px-2 font-medium">
-                              <span className="font-mono text-xs">{j.code}</span>
-                              {j.label && <><br /><span className="font-normal text-muted-foreground">{j.label}</span></>}
+                            <th key={j.id} className="text-center py-2 px-2 font-semibold">
+                              {j.label ?? <span className="font-mono text-xs text-muted-foreground">{j.code}</span>}
                             </th>
                           ))}
                           <th className="text-center py-2 px-2 font-medium">Total</th>

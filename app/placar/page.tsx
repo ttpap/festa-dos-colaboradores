@@ -145,7 +145,7 @@ export default function PlacarPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(0,201,255,0.12) 0%, oklch(0.075 0.022 255) 70%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(0,201,255,0.12) 0%, oklch(0.985 0.015 220) 70%)' }}
       >
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-96 h-96 rounded-full border border-primary/10 animate-ping" style={{ animationDuration: '3s' }} />
@@ -180,7 +180,7 @@ export default function PlacarPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.15) 0%, oklch(0.075 0.022 255) 70%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.15) 0%, oklch(0.985 0.015 220) 70%)' }}
       >
         {/* Pulsing rings */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -192,7 +192,7 @@ export default function PlacarPage() {
             style={{ boxShadow: '0 0 40px rgba(234,179,8,0.3)' }} />
           <p className="text-muted-foreground text-sm uppercase tracking-[0.2em] mb-6">Resultado Final</p>
           <div
-            className="text-9xl font-black tabular-nums text-yellow-400 leading-none mb-6"
+            className="text-9xl font-black tabular-nums text-amber-500 leading-none mb-6"
             style={{ textShadow: '0 0 80px rgba(234,179,8,0.7)', transition: 'all 0.3s' }}
           >
             {countdown}
@@ -214,10 +214,10 @@ export default function PlacarPage() {
     const isFirst   = rankIndex === 0
 
     const bgGlow = isFirst
-      ? 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.22) 0%, oklch(0.075 0.022 255) 70%)'
+      ? 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.22) 0%, oklch(0.985 0.015 220) 70%)'
       : rankIndex === 1
-        ? 'radial-gradient(ellipse at 50% 40%, rgba(160,160,160,0.1) 0%, oklch(0.075 0.022 255) 70%)'
-        : 'radial-gradient(ellipse at 50% 40%, rgba(180,90,20,0.12) 0%, oklch(0.075 0.022 255) 70%)'
+        ? 'radial-gradient(ellipse at 50% 40%, rgba(160,160,160,0.1) 0%, oklch(0.985 0.015 220) 70%)'
+        : 'radial-gradient(ellipse at 50% 40%, rgba(180,90,20,0.12) 0%, oklch(0.985 0.015 220) 70%)'
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
@@ -244,7 +244,7 @@ export default function PlacarPage() {
               style={{ filter: `drop-shadow(0 0 32px ${isFirst ? 'rgba(234,179,8,0.7)' : rankIndex === 1 ? 'rgba(200,200,200,0.45)' : 'rgba(180,90,20,0.45)'})` }}>
               {medal}
             </span>
-            <h2 className={`text-5xl md:text-6xl font-black tracking-tight ${isFirst ? 'text-yellow-400' : 'bz-gradient-text'}`}
+            <h2 className={`text-5xl md:text-6xl font-black tracking-tight ${isFirst ? 'text-amber-500' : 'bz-gradient-text'}`}
               style={isFirst ? { textShadow: '0 0 60px rgba(234,179,8,0.4)' } : {}}>
               {placeLabel}
             </h2>
@@ -256,7 +256,7 @@ export default function PlacarPage() {
               key={`card-${rankIndex}`}
               className="rounded-2xl overflow-hidden text-left animate-in fade-in slide-in-from-bottom-6 duration-700"
               style={{
-                background: 'oklch(0.115 0.028 258)',
+                background: 'oklch(1 0 0)',
                 border: isFirst ? '1px solid rgba(234,179,8,0.5)' : '1px solid rgba(0,201,255,0.25)',
                 boxShadow: isFirst
                   ? '0 0 60px rgba(234,179,8,0.18), 0 0 120px rgba(234,179,8,0.08)'
@@ -266,7 +266,7 @@ export default function PlacarPage() {
               {/* Empresa — sub-step 2+ */}
               <div className="px-7 pt-7 pb-5">
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Empresa</p>
-                <p className={`text-3xl font-bold ${isFirst ? 'text-yellow-400' : 'text-primary'}`}>
+                <p className={`text-3xl font-bold ${isFirst ? 'text-amber-500' : 'text-primary'}`}>
                   {subject?.empresa || '—'}
                 </p>
               </div>
@@ -292,10 +292,10 @@ export default function PlacarPage() {
                 >
                   <div className="border-t border-border/50 pt-5">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Participante</p>
-                    <p className={`text-3xl font-bold mb-4 ${isFirst ? 'text-yellow-200' : 'text-foreground'}`}>
+                    <p className={`text-3xl font-bold mb-4 ${isFirst ? 'text-amber-700' : 'text-foreground'}`}>
                       {subject?.nome}
                     </p>
-                    <p className={`text-7xl font-black tabular-nums ${isFirst ? 'text-yellow-400' : 'text-primary'}`}
+                    <p className={`text-7xl font-black tabular-nums ${isFirst ? 'text-amber-500' : 'text-primary'}`}
                       style={isFirst ? { textShadow: '0 0 40px rgba(234,179,8,0.5)' } : {}}>
                       {subject?.total_score}
                       <span className="text-xl font-normal text-muted-foreground ml-2">pts</span>
@@ -327,8 +327,8 @@ export default function PlacarPage() {
       className="min-h-screen text-foreground p-6 md:p-10"
       style={{
         background: isDone
-          ? 'radial-gradient(ellipse at 50% 0%, rgba(234,179,8,0.1) 0%, oklch(0.075 0.022 255) 60%)'
-          : 'radial-gradient(ellipse at 50% 0%, rgba(0,201,255,0.08) 0%, oklch(0.075 0.022 255) 60%)',
+          ? 'radial-gradient(ellipse at 50% 0%, rgba(234,179,8,0.1) 0%, oklch(0.985 0.015 220) 60%)'
+          : 'radial-gradient(ellipse at 50% 0%, rgba(0,201,255,0.08) 0%, oklch(0.985 0.015 220) 60%)',
       }}
     >
       <div className="max-w-3xl mx-auto">
@@ -344,7 +344,7 @@ export default function PlacarPage() {
             {isDone ? (
               <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5">
                 <span className="w-2 h-2 bg-yellow-400 rounded-full" />
-                <span className="text-yellow-400 text-sm font-semibold">🎊 Resultado final revelado!</span>
+                <span className="text-amber-500 text-sm font-semibold">🎊 Resultado final revelado!</span>
               </div>
             ) : null}
           </div>
@@ -391,25 +391,25 @@ export default function PlacarPage() {
                       ) : <span className="text-muted-foreground/30 text-lg">·</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-bold text-lg leading-tight truncate ${isWinner ? 'text-yellow-300' : 'text-foreground'}`}>
+                      <p className={`font-bold text-lg leading-tight truncate ${isWinner ? 'text-amber-700' : 'text-foreground'}`}>
                         {s.nome}
                       </p>
                       <p className="text-muted-foreground text-sm truncate">{s.tema}</p>
                       {s.empresa && (
-                        <p className="text-xs truncate font-medium" style={{ color: 'oklch(0.45 0.07 220)' }}>
+                        <p className="text-xs truncate font-medium" style={{ color: 'oklch(0.5 0.12 235)' }}>
                           {s.empresa}
                         </p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className={`text-3xl font-bold tabular-nums ${
-                        (revealed || isDone) && rank === 0 ? 'text-yellow-400'
+                        (revealed || isDone) && rank === 0 ? 'text-amber-500'
                         : (revealed || isDone) && rank === 1 ? 'text-zinc-300'
                         : (revealed || isDone) && rank === 2 ? 'text-amber-500'
                         : 'text-primary'}`}>
                         {s.total_score}
                       </p>
-                      <p className="text-xs" style={{ color: 'oklch(0.42 0.055 220)' }}>
+                      <p className="text-xs" style={{ color: 'oklch(0.45 0.1 235)' }}>
                         {s.vote_count} {s.vote_count === 1 ? 'jurado' : 'jurados'}
                       </p>
                     </div>
@@ -426,7 +426,7 @@ export default function PlacarPage() {
         )}
 
         {!isDone && (
-          <p className="text-center text-xs mt-8" style={{ color: 'oklch(0.32 0.04 250)' }}>
+          <p className="text-center text-xs mt-8" style={{ color: 'oklch(0.5 0.08 240)' }}>
             Actualiza automaticamente a cada 10s
           </p>
         )}
