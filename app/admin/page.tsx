@@ -420,16 +420,6 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label>Votação</Label>
-                    <Button
-                      variant={votingOpen ? 'default' : 'outline'}
-                      onClick={() => updateSetting('voting_open', votingOpen ? 'false' : 'true')}
-                    >
-                      {votingOpen ? '🟢 Aberta — Fechar' : '🔴 Fechada — Abrir'}
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
                     <Label>Pontuações (participantes)</Label>
                     <Button
                       variant={scoresRevealed ? 'default' : 'outline'}
