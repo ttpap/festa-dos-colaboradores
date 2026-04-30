@@ -15,7 +15,7 @@ export function getSupabase() {
 // Backward-compat: placar page uses this directly
 export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
   get(_target, prop) {
-    return (getSupabase() as Record<string | symbol, unknown>)[prop]
+    return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop]
   },
 })
 
