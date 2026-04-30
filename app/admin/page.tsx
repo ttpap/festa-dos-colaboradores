@@ -443,6 +443,17 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
+                    <Label>Revelar Resultado Final</Label>
+                    <Button
+                      variant={resultRevealed ? 'default' : 'outline'}
+                      onClick={() => updateSetting('result_revealed', resultRevealed ? 'false' : 'true')}
+                      className={resultRevealed ? 'bg-yellow-500 hover:bg-yellow-400 text-black border-0' : ''}
+                    >
+                      {resultRevealed ? '🏆 Revelado — Ocultar' : '🎬 Iniciar Revelação Final'}
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
                     <Label>Link da plateia</Label>
                     <Button
                       variant="outline"
