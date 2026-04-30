@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -182,12 +183,14 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-sm border-border">
           <CardHeader className="text-center pb-2">
-            <div
-              className="w-14 h-14 rounded-full bz-gradient mx-auto mb-3 flex items-center justify-center text-2xl"
-              style={{ boxShadow: '0 0 30px rgba(0,201,255,0.2)' }}
-            >
-              🏆
-            </div>
+            <Image
+              src="/logo.jpeg"
+              alt="BZ Logo"
+              width={64}
+              height={64}
+              className="rounded-full mx-auto mb-3"
+              style={{ boxShadow: '0 0 30px rgba(0,201,255,0.25)' }}
+            />
             <CardTitle className="bz-gradient-text">Painel Admin</CardTitle>
             <p className="text-muted-foreground text-xs">Festa dos Colaboradores 2026</p>
           </CardHeader>
@@ -442,25 +445,6 @@ export default function AdminPage() {
                     </Button>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <Label>Vencedor (plateia)</Label>
-                    <Button
-                      variant={resultRevealed ? 'default' : 'outline'}
-                      disabled={!allVoted && !resultRevealed}
-                      onClick={() => updateSetting('result_revealed', resultRevealed ? 'false' : 'true')}
-                      title={!allVoted ? `Faltam votos: ${actualVotes}/${expectedVotes}` : ''}
-                    >
-                      {resultRevealed ? '🏆 Revelado — Ocultar' : '🔒 Revelar Vencedor'}
-                    </Button>
-                    {!allVoted && !resultRevealed && (
-                      <p className="text-xs text-muted-foreground">
-                        {actualVotes}/{expectedVotes} votos ({judgesForEvent.length} jurados × {attractionsForEvent.length} atrações)
-                      </p>
-                    )}
-                    {allVoted && !resultRevealed && (
-                      <p className="text-xs text-green-600 font-medium">✓ Todos votaram</p>
-                    )}
-                  </div>
                 </CardContent>
               </Card>
 
