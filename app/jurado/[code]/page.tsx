@@ -80,7 +80,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
   const [votes, setVotes] = useState<Vote[]>([])
   const [scores, setScores] = useState<Record<string, ScoreState>>({})
   const [submitting, setSubmitting] = useState<string | null>(null)
-  const [votingOpen, setVotingOpen] = useState(true)
+  const [votingOpen, setVotingOpen] = useState(true) // kept for UI compat but no longer used as gate
   const [judgeLabel, setJudgeLabel] = useState<string | null>(null)
   const [judgeEvent, setJudgeEvent] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
@@ -205,7 +205,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
     )
   }
 
-  const locked = !votingOpen || expired
+  const locked = expired
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">

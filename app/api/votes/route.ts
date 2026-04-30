@@ -16,16 +16,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Jurado inválido' }, { status: 401 })
   }
 
-  const { data: votingSetting } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'voting_open')
-    .single()
-
-  if (votingSetting?.value !== 'true') {
-    return NextResponse.json({ error: 'Votação encerrada' }, { status: 403 })
-  }
-
   const { data, error } = await supabase
     .from('votes')
     .upsert(
