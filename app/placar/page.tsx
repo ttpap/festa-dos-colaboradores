@@ -8,17 +8,28 @@ import type { AttractionScore } from '@/lib/types'
 const MEDALS = ['🥇', '🥈', '🥉']
 const PLACE_LABELS = ['1º Lugar', '2º Lugar', '3º Lugar']
 
-// How long each reveal sub-step stays on screen (ms)
+// 12 reveal sub-steps total. Order per place:
+//   subStep 1 = colocação (medal + "Xº Lugar")
+//   subStep 2 = + empresa
+//   subStep 3 = + celebridade (tema)
+//   subStep 4 = + nome + pontuação
+// Delays (ms) = how long each sub-step stays on screen before next.
 const STEP_DELAYS = [
-  2800, // step 1→2: empresa of 3rd place
-  2800, // step 2→3: tema of 3rd place
-  5000, // step 3→4: nome+pts of 3rd → long pause before next place
-  2800, // step 4→5: empresa of 2nd place
-  2800, // step 5→6: tema of 2nd place
-  5000, // step 6→7: nome+pts of 2nd → long pause before 1st
-  3500, // step 7→8: empresa of 1st place
-  3500, // step 8→9: tema of 1st place
-  7000, // step 9→10: nome+pts of 1st → linger on winner
+  // 3rd place
+  4500, // 1→2: colocação on screen
+  4500, // 2→3: empresa
+  4500, // 3→4: celebridade
+  6500, // 4→5: nome+pts → long pause before 2nd
+  // 2nd place
+  5000, // 5→6: colocação
+  5000, // 6→7: empresa
+  5000, // 7→8: celebridade
+  7000, // 8→9: nome+pts → longer pause before 1st
+  // 1st place
+  6000, //  9→10: colocação (build maximum suspense)
+  6000, // 10→11: empresa
+  6000, // 11→12: celebridade
+  9000, // 12→13: nome+pts → linger on winner
 ]
 
 export default function PlacarPage() {
@@ -28,7 +39,7 @@ export default function PlacarPage() {
   const [loading, setLoading] = useState(true)
   const [animKey, setAnimKey] = useState(0)
 
-  // 0 = not started | 1–9 = dramatic reveal in progress | 10 = done / final frame
+  // 0 = not started | 1–12 = dramatic reveal in progress | 13 = done / final frame
   const [revealStep, setRevealStep] = useState(0)
   const [countdown, setCountdown] = useState(0) // 5→4→3→2→1 before reveal starts
   const revealStartedRef = useRef(false)
@@ -65,8 +76,8 @@ export default function PlacarPage() {
 
   // Advance dramatic reveal steps
   useEffect(() => {
-    if (revealStep === 0 || revealStep >= 10) return
-    const delay = STEP_DELAYS[revealStep - 1] ?? 3000
+    if (revealStep === 0 || revealStep >= 13) return
+    const delay = STEP_DELAYS[revealStep - 1] ?? 4000
     const t = setTimeout(() => setRevealStep(s => s + 1), delay)
     return () => clearTimeout(t)
   }, [revealStep])
@@ -192,17 +203,18 @@ export default function PlacarPage() {
     )
   }
 
-  // ── DRAMATIC REVEAL (steps 1–9) ───────────────────────────────────────────
-  if (revealed && revealStep > 0 && revealStep < 10) {
-    const rankIndex = revealStep <= 3 ? 2 : revealStep <= 6 ? 1 : 0
-    const subStep   = revealStep <= 3 ? revealStep : revealStep <= 6 ? revealStep - 3 : revealStep - 6
+  // ── DRAMATIC REVEAL (steps 1–12) ──────────────────────────────────────────
+  if (revealed && revealStep > 0 && revealStep < 13) {
+    // 4 sub-steps per place: 1=colocação, 2=empresa, 3=celebridade, 4=nome+pts
+    const rankIndex = revealStep <= 4 ? 2 : revealStep <= 8 ? 1 : 0
+    const subStep   = revealStep <= 4 ? revealStep : revealStep <= 8 ? revealStep - 4 : revealStep - 8
     const subject   = sortedScores[rankIndex]
     const medal     = MEDALS[rankIndex]
     const placeLabel = PLACE_LABELS[rankIndex]
     const isFirst   = rankIndex === 0
 
     const bgGlow = isFirst
-      ? 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.2) 0%, oklch(0.075 0.022 255) 70%)'
+      ? 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.22) 0%, oklch(0.075 0.022 255) 70%)'
       : rankIndex === 1
         ? 'radial-gradient(ellipse at 50% 40%, rgba(160,160,160,0.1) 0%, oklch(0.075 0.022 255) 70%)'
         : 'radial-gradient(ellipse at 50% 40%, rgba(180,90,20,0.12) 0%, oklch(0.075 0.022 255) 70%)'
@@ -211,77 +223,95 @@ export default function PlacarPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
         style={{ background: bgGlow }}>
 
-        {/* Pulsing halo for 1st place */}
-        {isFirst && subStep >= 3 && (
+        {/* Pulsing halo — intensifies as more is revealed */}
+        {isFirst && subStep >= 2 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-80 h-80 rounded-full border border-yellow-500/20 animate-ping" style={{ animationDuration: '2.5s' }} />
-            <div className="absolute w-56 h-56 rounded-full border border-yellow-500/30 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.5s' }} />
+            <div className="w-[28rem] h-[28rem] rounded-full border border-yellow-500/15 animate-ping" style={{ animationDuration: '3s' }} />
+            <div className="absolute w-80 h-80 rounded-full border border-yellow-500/25 animate-ping" style={{ animationDuration: '2.4s', animationDelay: '0.4s' }} />
+            {subStep >= 4 && (
+              <div className="absolute w-56 h-56 rounded-full border border-yellow-500/35 animate-ping" style={{ animationDuration: '1.6s', animationDelay: '0.8s' }} />
+            )}
           </div>
         )}
 
-        <div className="text-center max-w-sm w-full relative z-10">
-          {/* Medal */}
-          <div className="mb-6">
-            <span className="text-8xl block leading-none mb-4"
-              style={{ filter: `drop-shadow(0 0 24px ${isFirst ? 'rgba(234,179,8,0.6)' : rankIndex === 1 ? 'rgba(200,200,200,0.4)' : 'rgba(180,90,20,0.4)'})` }}>
+        <div className="text-center max-w-md w-full relative z-10">
+          {/* Sub-step 1: Colocação alone — medal + place label fade in fresh per place */}
+          <div
+            key={`title-${rankIndex}`}
+            className="mb-8 animate-in fade-in zoom-in-50 duration-1000"
+          >
+            <span className="text-9xl block leading-none mb-5"
+              style={{ filter: `drop-shadow(0 0 32px ${isFirst ? 'rgba(234,179,8,0.7)' : rankIndex === 1 ? 'rgba(200,200,200,0.45)' : 'rgba(180,90,20,0.45)'})` }}>
               {medal}
             </span>
-            <h2 className={`text-4xl font-black tracking-tight ${isFirst ? 'text-yellow-400' : 'bz-gradient-text'}`}>
+            <h2 className={`text-5xl md:text-6xl font-black tracking-tight ${isFirst ? 'text-yellow-400' : 'bz-gradient-text'}`}
+              style={isFirst ? { textShadow: '0 0 60px rgba(234,179,8,0.4)' } : {}}>
               {placeLabel}
             </h2>
           </div>
 
-          {/* Progressive card */}
-          <div className="rounded-2xl overflow-hidden text-left"
-            style={{
-              background: 'oklch(0.115 0.028 258)',
-              border: isFirst ? '1px solid rgba(234,179,8,0.45)' : '1px solid rgba(0,201,255,0.22)',
-              boxShadow: isFirst
-                ? '0 0 60px rgba(234,179,8,0.15), 0 0 120px rgba(234,179,8,0.06)'
-                : '0 0 40px rgba(0,201,255,0.1)',
-            }}>
+          {/* Progressive card — only renders from sub-step 2 onwards */}
+          {subStep >= 2 && (
+            <div
+              key={`card-${rankIndex}`}
+              className="rounded-2xl overflow-hidden text-left animate-in fade-in slide-in-from-bottom-6 duration-700"
+              style={{
+                background: 'oklch(0.115 0.028 258)',
+                border: isFirst ? '1px solid rgba(234,179,8,0.5)' : '1px solid rgba(0,201,255,0.25)',
+                boxShadow: isFirst
+                  ? '0 0 60px rgba(234,179,8,0.18), 0 0 120px rgba(234,179,8,0.08)'
+                  : '0 0 40px rgba(0,201,255,0.12)',
+              }}>
 
-            {/* Empresa — sub-step 1+ */}
-            <div className="px-7 pt-7 pb-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Empresa</p>
-              <p className={`text-2xl font-bold ${isFirst ? 'text-yellow-400' : 'text-primary'}`}>
-                {subject?.empresa || '—'}
-              </p>
+              {/* Empresa — sub-step 2+ */}
+              <div className="px-7 pt-7 pb-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Empresa</p>
+                <p className={`text-3xl font-bold ${isFirst ? 'text-yellow-400' : 'text-primary'}`}>
+                  {subject?.empresa || '—'}
+                </p>
+              </div>
+
+              {/* Celebridade / Fantasia — sub-step 3+ */}
+              {subStep >= 3 && (
+                <div
+                  key={`tema-${rankIndex}`}
+                  className="px-7 pb-5 animate-in fade-in slide-in-from-bottom-4 duration-700"
+                >
+                  <div className="border-t border-border/50 pt-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Fantasia / Celebridade</p>
+                    <p className="text-2xl font-semibold text-foreground">{subject?.tema}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Nome + pontuação — sub-step 4 */}
+              {subStep >= 4 && (
+                <div
+                  key={`name-${rankIndex}`}
+                  className="px-7 pb-7 animate-in fade-in slide-in-from-bottom-4 duration-1000"
+                >
+                  <div className="border-t border-border/50 pt-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Participante</p>
+                    <p className={`text-3xl font-bold mb-4 ${isFirst ? 'text-yellow-200' : 'text-foreground'}`}>
+                      {subject?.nome}
+                    </p>
+                    <p className={`text-7xl font-black tabular-nums ${isFirst ? 'text-yellow-400' : 'text-primary'}`}
+                      style={isFirst ? { textShadow: '0 0 40px rgba(234,179,8,0.5)' } : {}}>
+                      {subject?.total_score}
+                      <span className="text-xl font-normal text-muted-foreground ml-2">pts</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Tema — sub-step 2+ */}
-            {subStep >= 2 && (
-              <div className="px-7 pb-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="border-t border-border/50 pt-5">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Fantasia / Celebridade</p>
-                  <p className="text-xl font-semibold text-foreground">{subject?.tema}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Nome + pontuação — sub-step 3+ */}
-            {subStep >= 3 && (
-              <div className="px-7 pb-7 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="border-t border-border/50 pt-5">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Participante</p>
-                  <p className={`text-2xl font-bold mb-3 ${isFirst ? 'text-yellow-200' : 'text-foreground'}`}>
-                    {subject?.nome}
-                  </p>
-                  <p className={`text-6xl font-black tabular-nums ${isFirst ? 'text-yellow-400' : 'text-primary'}`}>
-                    {subject?.total_score}
-                    <span className="text-lg font-normal text-muted-foreground ml-2">pts</span>
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Suspense dots while waiting for next piece */}
-          {subStep < 3 && (
-            <div className="flex justify-center gap-2 mt-6 opacity-40">
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0s' }} />
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.2s' }} />
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.4s' }} />
+          {/* Suspense dots while next piece is loading */}
+          {subStep < 4 && (
+            <div className="flex justify-center gap-2 mt-8 opacity-50">
+              <span className={`w-2.5 h-2.5 rounded-full animate-bounce ${isFirst ? 'bg-yellow-400' : 'bg-primary'}`} style={{ animationDelay: '0s' }} />
+              <span className={`w-2.5 h-2.5 rounded-full animate-bounce ${isFirst ? 'bg-yellow-400' : 'bg-primary'}`} style={{ animationDelay: '0.2s' }} />
+              <span className={`w-2.5 h-2.5 rounded-full animate-bounce ${isFirst ? 'bg-yellow-400' : 'bg-primary'}`} style={{ animationDelay: '0.4s' }} />
             </div>
           )}
         </div>
@@ -289,8 +319,8 @@ export default function PlacarPage() {
     )
   }
 
-  // ── FINAL FRAME (step ≥ 10) or normal scoreboard ─────────────────────────
-  const isDone = revealed && revealStep >= 10
+  // ── FINAL FRAME (step ≥ 13) or normal scoreboard ─────────────────────────
+  const isDone = revealed && revealStep >= 13
 
   return (
     <div
