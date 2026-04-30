@@ -30,6 +30,8 @@ export default function PlacarPage() {
 
   // 0 = not started | 1–9 = dramatic reveal in progress | 10 = done / final frame
   const [revealStep, setRevealStep] = useState(0)
+  const [countdown, setCountdown] = useState(0) // 5→4→3→2→1 before reveal starts
+  const revealStartedRef = useRef(false)
 
   const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -47,8 +49,6 @@ export default function PlacarPage() {
     const isRevealed = data.result_revealed === 'true'
     setRevealed(isRevealed)
     setScoresRevealed(data.scores_revealed === 'true')
-    // If result already revealed on page load, start reveal sequence
-    if (isRevealed) setRevealStep(prev => prev === 0 ? 1 : prev)
   }, [])
 
   useEffect(() => {
@@ -86,8 +86,7 @@ export default function PlacarPage() {
         if (payload.new.key === 'result_revealed') {
           const val = payload.new.value === 'true'
           setRevealed(val)
-          if (val) setRevealStep(prev => prev === 0 ? 1 : prev)
-          else setRevealStep(0)
+          if (!val) { setRevealStep(0); revealStartedRef.current = false; setCountdown(0) }
         }
         if (payload.new.key === 'scores_revealed') {
           setScoresRevealed(payload.new.value === 'true')
@@ -97,6 +96,25 @@ export default function PlacarPage() {
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])
+
+  // 5-second countdown then launch reveal
+  useEffect(() => {
+    if (!revealed || revealStartedRef.current) return
+    revealStartedRef.current = true
+    let count = 5
+    setCountdown(count)
+    const interval = setInterval(() => {
+      count--
+      if (count <= 0) {
+        clearInterval(interval)
+        setCountdown(0)
+        setRevealStep(1)
+      } else {
+        setCountdown(count)
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [revealed])
 
   const sortedScores = [...scores].sort((a, b) => b.total_score - a.total_score)
   const maxScore = Math.max(...sortedScores.map(s => s.total_score), 1)
@@ -148,6 +166,34 @@ export default function PlacarPage() {
             <span className="animate-bounce" style={{ animationDelay: '0.15s' }}>🎭</span>
             <span className="animate-bounce" style={{ animationDelay: '0.3s' }}>✨</span>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── COUNTDOWN (5s before reveal) ─────────────────────────────────────────
+  if (revealed && revealStep === 0 && countdown > 0) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.15) 0%, oklch(0.075 0.022 255) 70%)' }}
+      >
+        {/* Pulsing rings */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-96 h-96 rounded-full border border-yellow-500/20 animate-ping" style={{ animationDuration: '1s' }} />
+          <div className="absolute w-64 h-64 rounded-full border border-yellow-500/30 animate-ping" style={{ animationDuration: '1s', animationDelay: '0.3s' }} />
+        </div>
+        <div className="text-center relative z-10">
+          <Image src="/logo.jpeg" alt="BZ" width={80} height={80} className="rounded-full mx-auto mb-8"
+            style={{ boxShadow: '0 0 40px rgba(234,179,8,0.3)' }} />
+          <p className="text-muted-foreground text-sm uppercase tracking-[0.2em] mb-6">Resultado Final</p>
+          <div
+            className="text-9xl font-black tabular-nums text-yellow-400 leading-none mb-6"
+            style={{ textShadow: '0 0 80px rgba(234,179,8,0.7)', transition: 'all 0.3s' }}
+          >
+            {countdown}
+          </div>
+          <p className="text-muted-foreground text-sm">A revelação começa já a seguir...</p>
         </div>
       </div>
     )
