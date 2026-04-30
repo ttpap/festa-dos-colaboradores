@@ -57,11 +57,12 @@ function ScoreInput({
             key={n}
             disabled={disabled}
             onClick={() => onChange(n)}
-            className={`flex-1 h-10 rounded-md border text-sm font-medium transition-colors
+            className={`flex-1 h-10 rounded-md border text-sm font-semibold transition-all
               ${value === n
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background border-input hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'
+                ? 'border-0 text-[oklch(0.08_0.02_255)] shadow-sm'
+                : 'bg-secondary border-border text-foreground hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed'
               }`}
+            style={value === n ? { background: 'linear-gradient(135deg, #00C9FF 0%, #0052D4 100%)' } : {}}
           >
             {n}
           </button>
@@ -206,7 +207,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
   const locked = !votingOpen || expired
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-bold">Painel do Jurado</h1>
@@ -224,11 +225,12 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
           {judgeEvent && (
             <div className={`mt-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 border
               ${expired
-                ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                ? 'bg-red-500/10 border-red-500/30 text-red-400'
                 : timeLeft < 30 * 60 * 1000
-                  ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
-                  : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
+                  ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+                  : 'border-primary/20 text-primary'
               }`}
+            style={!expired && timeLeft >= 30 * 60 * 1000 ? { background: 'rgba(0,201,255,0.07)' } : {}}
             >
               <span className="text-sm">⏱</span>
               {expired ? (
@@ -259,7 +261,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
               const isSubmitting = submitting === a.id
 
               return (
-                <Card key={a.id} className={submitted ? 'border-green-500/50' : ''}>
+                <Card key={a.id} className={submitted ? 'border-primary/40' : ''}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -268,7 +270,10 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
                         {a.empresa && <p className="text-xs font-medium text-muted-foreground">{a.empresa}</p>}
                       </div>
                       {submitted && (
-                        <Badge className="bg-green-600 text-white shrink-0">✓ Confirmado</Badge>
+                        <Badge
+                          className="shrink-0 border-0 text-[oklch(0.08_0.02_255)]"
+                          style={{ background: 'linear-gradient(135deg, #00C9FF 0%, #0052D4 100%)' }}
+                        >✓ Confirmado</Badge>
                       )}
                     </div>
                   </CardHeader>
@@ -289,7 +294,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total</p>
-                        <p className="text-3xl font-bold">{total > 0 ? total : '—'}<span className="text-sm text-muted-foreground font-normal">/15</span></p>
+                        <p className={`text-3xl font-bold ${total > 0 ? 'text-primary' : 'text-muted-foreground'}`}>{total > 0 ? total : '—'}<span className="text-sm text-muted-foreground font-normal">/15</span></p>
                       </div>
                       <Button
                         onClick={() => submitVote(a.id)}

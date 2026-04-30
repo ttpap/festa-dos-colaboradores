@@ -72,7 +72,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -84,37 +84,62 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* BZ Brand — Deep Navy + Cyan-to-Blue */
+  --background: oklch(0.075 0.022 255);
+  --foreground: oklch(0.97 0.005 220);
+  --card: oklch(0.115 0.028 258);
+  --card-foreground: oklch(0.95 0.005 220);
+  --popover: oklch(0.115 0.028 258);
+  --popover-foreground: oklch(0.95 0.005 220);
+  --primary: oklch(0.78 0.175 200);
+  --primary-foreground: oklch(0.08 0.02 255);
+  --secondary: oklch(0.175 0.04 258);
+  --secondary-foreground: oklch(0.9 0.01 220);
+  --muted: oklch(0.155 0.035 258);
+  --muted-foreground: oklch(0.5 0.065 220);
+  --accent: oklch(0.175 0.04 258);
+  --accent-foreground: oklch(0.9 0.01 220);
+  --destructive: oklch(0.65 0.22 22);
+  --border: oklch(0.25 0.05 252 / 55%);
+  --input: oklch(0.2 0.04 255 / 60%);
+  --ring: oklch(0.78 0.175 200);
+  --chart-1: oklch(0.78 0.175 200);
+  --chart-2: oklch(0.62 0.18 235);
+  --chart-3: oklch(0.55 0.16 265);
+  --chart-4: oklch(0.48 0.12 230);
+  --chart-5: oklch(0.38 0.08 255);
+  --sidebar: oklch(0.115 0.028 258);
+  --sidebar-foreground: oklch(0.95 0.005 220);
+  --sidebar-primary: oklch(0.78 0.175 200);
+  --sidebar-primary-foreground: oklch(0.08 0.02 255);
+  --sidebar-accent: oklch(0.175 0.04 258);
+  --sidebar-accent-foreground: oklch(0.9 0.01 220);
+  --sidebar-border: oklch(0.25 0.05 252 / 55%);
+  --sidebar-ring: oklch(0.78 0.175 200);
+}
+
+/* ── BZ Brand Gradient Utilities ── */
+.bz-gradient {
+  background: linear-gradient(135deg, #00C9FF 0%, #0052D4 100%);
+}
+
+.bz-gradient-text {
+  background: linear-gradient(135deg, #00C9FF 0%, #92B8FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Scoreboard card entrance animation ── */
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @layer base {

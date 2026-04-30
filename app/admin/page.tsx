@@ -179,10 +179,17 @@ export default function AdminPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle>Painel Admin</CardTitle>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-sm border-border">
+          <CardHeader className="text-center pb-2">
+            <div
+              className="w-14 h-14 rounded-full bz-gradient mx-auto mb-3 flex items-center justify-center text-2xl"
+              style={{ boxShadow: '0 0 30px rgba(0,201,255,0.2)' }}
+            >
+              🏆
+            </div>
+            <CardTitle className="bz-gradient-text">Painel Admin</CardTitle>
+            <p className="text-muted-foreground text-xs">Festa dos Colaboradores 2026</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -219,11 +226,11 @@ export default function AdminPage() {
   const allVoted = judgesForEvent.length > 0 && attractionsForEvent.length > 0 && actualVotes >= expectedVotes
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Painel Admin</h1>
+            <h1 className="text-2xl font-bold bz-gradient-text">Painel Admin</h1>
             <p className="text-sm text-muted-foreground">Festa dos Colaboradores 2026</p>
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout}>Sair</Button>
