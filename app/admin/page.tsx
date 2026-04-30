@@ -216,7 +216,6 @@ export default function AdminPage() {
   }
 
   const resultRevealed = settings?.result_revealed === 'true'
-  const scoresRevealed = settings?.scores_revealed === 'true'
   const votingOpen = settings?.voting_open === 'true'
   const activeEvent = settings?.active_event ?? '2026-05-05'
 
@@ -433,20 +432,15 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label>Pontuações (participantes)</Label>
-                    <Button
-                      variant={scoresRevealed ? 'default' : 'outline'}
-                      onClick={() => updateSetting('scores_revealed', scoresRevealed ? 'false' : 'true')}
-                    >
-                      {scoresRevealed ? '📊 Visíveis — Ocultar' : '🔒 Ocultas — Revelar'}
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
                     <Label>Revelar Resultado Final</Label>
                     <Button
                       variant={resultRevealed ? 'default' : 'outline'}
-                      onClick={() => updateSetting('result_revealed', resultRevealed ? 'false' : 'true')}
+                      onClick={async () => {
+                        const next = resultRevealed ? 'false' : 'true'
+                        // Couple scores_revealed with result_revealed — single button drives both
+                        await updateSetting('scores_revealed', next)
+                        await updateSetting('result_revealed', next)
+                      }}
                       className={resultRevealed ? 'bg-yellow-500 hover:bg-yellow-400 text-black border-0' : ''}
                     >
                       {resultRevealed ? '🏆 Revelado — Ocultar' : '🎬 Iniciar Revelação Final'}
