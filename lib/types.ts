@@ -2,6 +2,7 @@ export type Attraction = {
   id: string
   nome: string
   tema: string
+  empresa: string | null
   event_date: string
   ordem: number
   created_at: string
@@ -30,6 +31,7 @@ export type AttractionScore = {
   id: string
   nome: string
   tema: string
+  empresa: string | null
   ordem: number
   total_score: number
   vote_count: number

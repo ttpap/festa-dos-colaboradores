@@ -140,10 +140,11 @@ export default function PlacarPage() {
                       )}
                     </div>
 
-                    {/* Name + tema */}
+                    {/* Name + tema + empresa */}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-lg leading-tight truncate">{s.nome}</p>
                       <p className="text-zinc-400 text-sm truncate">{s.tema}</p>
+                      {s.empresa && <p className="text-zinc-500 text-xs truncate">{s.empresa}</p>}
                     </div>
 
                     {/* Score */}

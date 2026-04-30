@@ -15,7 +15,7 @@ export async function GET() {
   const [attractionsRes, votesRes] = await Promise.all([
     supabase
       .from('attractions')
-      .select('id, nome, tema, ordem')
+      .select('id, nome, tema, empresa, ordem')
       .eq('event_date', activeEvent)
       .order('ordem'),
     supabase.from('votes').select('attraction_id, total'),
@@ -30,6 +30,7 @@ export async function GET() {
       id: a.id,
       nome: a.nome,
       tema: a.tema,
+      empresa: (a as { empresa?: string | null }).empresa ?? null,
       ordem: a.ordem,
       total_score: aVotes.reduce((sum, v) => sum + (v.total ?? 0), 0),
       vote_count: aVotes.length,

@@ -29,6 +29,11 @@ const EVENTS = [
   { value: '2026-05-07', label: '07/05/2026 — Festa 2' },
 ]
 
+const EMPRESAS: Record<string, string[]> = {
+  '2026-05-05': ['BOURBON', 'BYBLOS', 'BZ', 'BZ SPORTS', 'CORAIS E CONCHAS', 'ECOBUZIOS', 'NATIVA', 'PRIMITIVO'],
+  '2026-05-07': ['ANEXO PRAIA', 'BLUE MARLIN', 'CASABLANCA', 'ECOTEXTIL', 'LA PEDRERA', 'TANGARAS', 'VILLA RAPHAEL'],
+}
+
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [password, setPassword] = useState('')
@@ -39,6 +44,7 @@ export default function AdminPage() {
   const [adminScores, setAdminScores] = useState<AdminScore | null>(null)
   const [newNome, setNewNome] = useState('')
   const [newTema, setNewTema] = useState('')
+  const [newEmpresa, setNewEmpresa] = useState(EMPRESAS['2026-05-05'][0])
   const [newEventDate, setNewEventDate] = useState('2026-05-05')
   const [newJudgeLabel, setNewJudgeLabel] = useState('')
   const [newJudgeEvent, setNewJudgeEvent] = useState('2026-05-05')
@@ -96,11 +102,11 @@ export default function AdminPage() {
 
   async function addAttraction(e: React.FormEvent) {
     e.preventDefault()
-    if (!newNome.trim() || !newTema.trim()) return
+    if (!newNome.trim() || !newTema.trim() || !newEmpresa) return
     const res = await fetch('/api/attractions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: newNome.trim(), tema: newTema.trim(), event_date: newEventDate, ordem: attractions.length }),
+      body: JSON.stringify({ nome: newNome.trim(), tema: newTema.trim(), empresa: newEmpresa, event_date: newEventDate, ordem: attractions.length }),
     })
     if (res.ok) {
       setNewNome('')
@@ -234,21 +240,38 @@ export default function AdminPage() {
                         <Input value={newNome} onChange={e => setNewNome(e.target.value)} placeholder="Ex: Maria Silva" />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <Label>Tema / Fantasia</Label>
-                        <Input value={newTema} onChange={e => setNewTema(e.target.value)} placeholder="Ex: Sereia" />
+                        <Label>Fantasia / Celebridade</Label>
+                        <Input value={newTema} onChange={e => setNewTema(e.target.value)} placeholder="Ex: Lady Gaga" />
                       </div>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <Label>Evento</Label>
-                      <select
-                        value={newEventDate}
-                        onChange={e => setNewEventDate(e.target.value)}
-                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                      >
-                        {EVENTS.map(ev => (
-                          <option key={ev.value} value={ev.value}>{ev.label}</option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <Label>Evento</Label>
+                        <select
+                          value={newEventDate}
+                          onChange={e => {
+                            setNewEventDate(e.target.value)
+                            setNewEmpresa(EMPRESAS[e.target.value][0])
+                          }}
+                          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        >
+                          {EVENTS.map(ev => (
+                            <option key={ev.value} value={ev.value}>{ev.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <Label>Empresa</Label>
+                        <select
+                          value={newEmpresa}
+                          onChange={e => setNewEmpresa(e.target.value)}
+                          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        >
+                          {EMPRESAS[newEventDate].map(emp => (
+                            <option key={emp} value={emp}>{emp}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <Button type="submit" className="w-fit">Adicionar</Button>
                   </form>
@@ -270,6 +293,7 @@ export default function AdminPage() {
                               <div>
                                 <p className="font-medium text-sm">{a.nome}</p>
                                 <p className="text-xs text-muted-foreground">{a.tema}</p>
+                                {a.empresa && <p className="text-xs text-muted-foreground font-medium">{a.empresa}</p>}
                               </div>
                               <Button
                                 variant="ghost"

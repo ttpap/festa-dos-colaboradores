@@ -205,6 +205,7 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
                       <div>
                         <CardTitle className="text-base">{a.nome}</CardTitle>
                         <p className="text-sm text-muted-foreground">{a.tema}</p>
+                        {a.empresa && <p className="text-xs font-medium text-muted-foreground">{a.empresa}</p>}
                       </div>
                       {submitted && (
                         <Badge className="bg-green-600 text-white shrink-0">✓ Confirmado</Badge>
