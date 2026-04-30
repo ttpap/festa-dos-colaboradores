@@ -21,6 +21,14 @@ type ScoreState = {
   performance: number
 }
 
+function formatCountdown(ms: number) {
+  const totalSecs = Math.floor(ms / 1000)
+  const h = Math.floor(totalSecs / 3600)
+  const m = Math.floor((totalSecs % 3600) / 60)
+  const s = totalSecs % 60
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
+
 function ScoreInput({
   label,
   desc,
@@ -71,6 +79,9 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
   const [scores, setScores] = useState<Record<string, ScoreState>>({})
   const [submitting, setSubmitting] = useState<string | null>(null)
   const [votingOpen, setVotingOpen] = useState(true)
+  const [judgeEvent, setJudgeEvent] = useState<string | null>(null)
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+  const [expired, setExpired] = useState(false)
 
   const load = useCallback(async () => {
     const votesRes = await fetch(`/api/votes/${code}`)
@@ -87,12 +98,12 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
         fetch('/api/settings').then(r => r.json()),
       ])
 
-    // Use judge's own event_date — never the global active_event
-    const judgeEvent = judgeData.event_date ?? settingsData.active_event ?? '2026-05-05'
+    const ev = judgeData.event_date ?? settingsData.active_event ?? '2026-05-05'
 
     setValid(true)
     setVotingOpen(settingsData.voting_open === 'true')
-    setAttractions(attrsData.filter((a: Attraction) => a.event_date === judgeEvent))
+    setJudgeEvent(ev)
+    setAttractions(attrsData.filter((a: Attraction) => a.event_date === ev))
     setVotes(judgeData.votes)
 
     const initialScores: Record<string, ScoreState> = {}
@@ -107,6 +118,27 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
   }, [code])
 
   useEffect(() => { load() }, [load])
+
+  // Countdown: expires at 18:00 local time on the judge's event day
+  useEffect(() => {
+    if (!judgeEvent) return
+    const deadline = new Date(`${judgeEvent}T18:00:00`)
+
+    const tick = () => {
+      const diff = deadline.getTime() - Date.now()
+      if (diff <= 0) {
+        setExpired(true)
+        setTimeLeft(0)
+      } else {
+        setExpired(false)
+        setTimeLeft(diff)
+      }
+    }
+
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [judgeEvent])
 
   async function submitVote(attractionId: string) {
     const s = scores[attractionId]
@@ -169,18 +201,42 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
     )
   }
 
+  const locked = !votingOpen || expired
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4">
       <div className="max-w-xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-bold">Painel do Jurado</h1>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge variant="secondary" className="font-mono">{code}</Badge>
-            {!votingOpen && <Badge variant="destructive">Votação encerrada</Badge>}
+            {expired && <Badge variant="destructive">Votação encerrada</Badge>}
+            {!votingOpen && !expired && <Badge variant="destructive">Votação encerrada</Badge>}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             Dá nota de 1 a 5 em cada critério e confirma o voto por cada atração.
           </p>
+
+          {/* Countdown */}
+          {judgeEvent && (
+            <div className={`mt-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 border
+              ${expired
+                ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                : timeLeft < 30 * 60 * 1000
+                  ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
+                  : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
+              }`}
+            >
+              <span className="text-sm">⏱</span>
+              {expired ? (
+                <span className="text-sm font-medium">Prazo encerrado às 18:00</span>
+              ) : (
+                <span className="text-sm font-medium tabular-nums">
+                  Encerra às 18:00 — <span className="font-mono">{formatCountdown(timeLeft)}</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {attractions.length === 0 ? (
@@ -196,7 +252,6 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
               const s = scores[a.id] ?? { adesao_tema: 0, criatividade: 0, performance: 0 }
               const total = s.adesao_tema + s.criatividade + s.performance
               const isSubmitting = submitting === a.id
-              const locked = !votingOpen
 
               return (
                 <Card key={a.id} className={submitted ? 'border-green-500/50' : ''}>
