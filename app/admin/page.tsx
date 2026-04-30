@@ -232,9 +232,19 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold bz-gradient-text">Painel Admin</h1>
-            <p className="text-sm text-muted-foreground">Festa dos Colaboradores 2026</p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.jpeg"
+              alt="BZ"
+              width={44}
+              height={44}
+              className="rounded-full shrink-0"
+              style={{ boxShadow: '0 0 16px rgba(0,201,255,0.3)' }}
+            />
+            <div>
+              <h1 className="text-2xl font-bold bz-gradient-text">Painel Admin</h1>
+              <p className="text-sm text-muted-foreground">Festa dos Colaboradores 2026</p>
+            </div>
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout}>Sair</Button>
         </div>

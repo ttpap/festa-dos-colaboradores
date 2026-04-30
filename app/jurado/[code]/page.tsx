@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { use } from 'react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -210,8 +211,20 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-xl font-bold">Painel do Jurado</h1>
-          {judgeLabel && <p className="text-base font-semibold mt-0.5">{judgeLabel}</p>}
+          <div className="flex items-center gap-3 mb-3">
+            <Image
+              src="/logo.jpeg"
+              alt="BZ"
+              width={48}
+              height={48}
+              className="rounded-full shrink-0"
+              style={{ boxShadow: '0 0 16px rgba(0,201,255,0.3)' }}
+            />
+            <div>
+              <h1 className="text-xl font-bold bz-gradient-text">Painel do Jurado</h1>
+              {judgeLabel && <p className="text-base font-semibold text-foreground">{judgeLabel}</p>}
+            </div>
+          </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge variant="secondary" className="font-mono">{code}</Badge>
             {expired && <Badge variant="destructive">Votação encerrada</Badge>}
