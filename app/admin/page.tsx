@@ -451,11 +451,22 @@ export default function AdminPage() {
                           .map(a => {
                             const rowVotes = adminScores.votes.filter(v => v.attraction_id === a.id)
                             const total = rowVotes.reduce((s, v) => s + (v.total ?? 0), 0)
+                            return { ...a, _total: total }
+                          })
+                          .sort((a, b) => b._total - a._total)
+                          .map((a, idx) => {
+                            const rowVotes = adminScores.votes.filter(v => v.attraction_id === a.id)
+                            const total = a._total
                             return (
                               <tr key={a.id} className="border-b last:border-0">
                                 <td className="py-2 pr-4">
-                                  <p className="font-medium">{a.nome}</p>
-                                  <p className="text-xs text-muted-foreground">{a.tema}</p>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-muted-foreground w-5">{idx + 1}º</span>
+                                    <div>
+                                      <p className="font-medium">{a.nome}</p>
+                                      <p className="text-xs text-muted-foreground">{a.tema}</p>
+                                    </div>
+                                  </div>
                                 </td>
                                 {adminScores.judges.map(j => {
                                   const v = rowVotes.find(v => v.judges?.code === j.code)
