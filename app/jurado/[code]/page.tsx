@@ -229,10 +229,12 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
             >
               <span className="text-sm">⏱</span>
               {expired ? (
-                <span className="text-sm font-medium">Prazo encerrado às 18:00</span>
+                <span className="text-sm font-medium">
+                  Prazo encerrado — {new Date(`${judgeEvent}T18:00:00`).toLocaleDateString('pt-BR')} às 18:00
+                </span>
               ) : (
                 <span className="text-sm font-medium tabular-nums">
-                  Encerra às 18:00 — <span className="font-mono">{formatCountdown(timeLeft)}</span>
+                  Encerra {new Date(`${judgeEvent}T18:00:00`).toLocaleDateString('pt-BR')} às 18:00 — <span className="font-mono">{formatCountdown(timeLeft)}</span>
                 </span>
               )}
             </div>
