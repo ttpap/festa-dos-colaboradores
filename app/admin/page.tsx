@@ -206,8 +206,17 @@ export default function AdminPage() {
   }
 
   const resultRevealed = settings?.result_revealed === 'true'
+  const scoresRevealed = settings?.scores_revealed === 'true'
   const votingOpen = settings?.voting_open === 'true'
   const activeEvent = settings?.active_event ?? '2026-05-05'
+
+  const judgesForEvent = adminScores?.judges.filter(j => j.event_date === activeEvent) ?? []
+  const attractionsForEvent = adminScores?.attractions.filter(a => a.event_date === activeEvent) ?? []
+  const expectedVotes = judgesForEvent.length * attractionsForEvent.length
+  const actualVotes = (adminScores?.votes ?? []).filter(v =>
+    attractionsForEvent.some(a => a.id === v.attraction_id)
+  ).length
+  const allVoted = judgesForEvent.length > 0 && attractionsForEvent.length > 0 && actualVotes >= expectedVotes
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-8">
@@ -414,13 +423,33 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label>Resultado no placar</Label>
+                    <Label>Pontuações (participantes)</Label>
+                    <Button
+                      variant={scoresRevealed ? 'default' : 'outline'}
+                      onClick={() => updateSetting('scores_revealed', scoresRevealed ? 'false' : 'true')}
+                    >
+                      {scoresRevealed ? '📊 Visíveis — Ocultar' : '🔒 Ocultas — Revelar'}
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Vencedor (plateia)</Label>
                     <Button
                       variant={resultRevealed ? 'default' : 'outline'}
+                      disabled={!allVoted && !resultRevealed}
                       onClick={() => updateSetting('result_revealed', resultRevealed ? 'false' : 'true')}
+                      title={!allVoted ? `Faltam votos: ${actualVotes}/${expectedVotes}` : ''}
                     >
-                      {resultRevealed ? '👁 Revelado — Ocultar' : '🔒 Oculto — Revelar'}
+                      {resultRevealed ? '🏆 Revelado — Ocultar' : '🔒 Revelar Vencedor'}
                     </Button>
+                    {!allVoted && !resultRevealed && (
+                      <p className="text-xs text-muted-foreground">
+                        {actualVotes}/{expectedVotes} votos ({judgesForEvent.length} jurados × {attractionsForEvent.length} atrações)
+                      </p>
+                    )}
+                    {allVoted && !resultRevealed && (
+                      <p className="text-xs text-green-600 font-medium">✓ Todos votaram</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

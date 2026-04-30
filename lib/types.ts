@@ -39,6 +39,7 @@ export type AttractionScore = {
 
 export type Settings = {
   result_revealed: string
+  scores_revealed: string
   active_event: string
   voting_open: string
 }
