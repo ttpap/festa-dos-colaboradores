@@ -459,6 +459,19 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
+                    <Label>Link do apresentador</Label>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/apresentador`)
+                        toast.success('Link copiado!')
+                      }}
+                    >
+                      🎤 Copiar link /apresentador
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
                     <Label>Link da plateia</Label>
                     <Button
                       variant="outline"
