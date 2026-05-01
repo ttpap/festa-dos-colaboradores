@@ -60,6 +60,7 @@ export default function AdminPage() {
   const [newJudgeLabel, setNewJudgeLabel] = useState('')
   const [newJudgeEvent, setNewJudgeEvent] = useState('2026-05-05')
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'attraction' | 'judge'; id: string; name: string } | null>(null)
+  const [revealConfirmOpen, setRevealConfirmOpen] = useState(false)
 
   const checkAuth = useCallback(async () => {
     const res = await fetch('/api/admin/check')
@@ -444,18 +445,33 @@ export default function AdminPage() {
 
                   <div className="flex flex-col gap-1.5">
                     <Label>Revelar Resultado Final</Label>
-                    <Button
-                      variant={resultRevealed ? 'default' : 'outline'}
-                      onClick={async () => {
-                        const next = resultRevealed ? 'false' : 'true'
-                        // Couple scores_revealed with result_revealed — single button drives both
-                        await updateSetting('scores_revealed', next)
-                        await updateSetting('result_revealed', next)
-                      }}
-                      className={resultRevealed ? 'bg-yellow-500 hover:bg-yellow-400 text-black border-0' : ''}
-                    >
-                      {resultRevealed ? '🏆 Revelado — Ocultar' : '🎬 Iniciar Revelação Final'}
-                    </Button>
+                    {resultRevealed ? (
+                      <Button
+                        variant="outline"
+                        onClick={async () => {
+                          await updateSetting('scores_revealed', 'false')
+                          await updateSetting('result_revealed', 'false')
+                        }}
+                        className="bg-yellow-500/10 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
+                      >
+                        🏆 Revelado — Ocultar
+                      </Button>
+                    ) : (
+                      <button
+                        onClick={() => setRevealConfirmOpen(true)}
+                        className="relative flex flex-col items-center justify-center gap-1 rounded-xl px-6 py-4 font-bold text-base text-white transition-all duration-150 active:scale-95 cursor-pointer"
+                        style={{
+                          background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+                          boxShadow: '0 0 24px rgba(239,68,68,0.45), 0 4px 16px rgba(0,0,0,0.3)',
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          minWidth: '220px',
+                        }}
+                      >
+                        <span className="text-2xl">🎬</span>
+                        <span>Iniciar Revelação Final</span>
+                        <span className="text-xs font-normal opacity-75">Clique para confirmar</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-1.5">
@@ -561,6 +577,33 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={revealConfirmOpen} onOpenChange={setRevealConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg">🎬 Iniciar Revelação Final?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Esta acção vai revelar o resultado para toda a plateia em <strong>/placar</strong> com a animação dramática de revelação.
+              <br /><br />
+              <strong>Tem a certeza que todos os jurados já votaram?</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="font-bold text-white border-0"
+              style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)' }}
+              onClick={async () => {
+                await updateSetting('scores_revealed', 'true')
+                await updateSetting('result_revealed', 'true')
+                setRevealConfirmOpen(false)
+              }}
+            >
+              🎬 Sim, revelar agora!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
         <AlertDialogContent>
