@@ -141,6 +141,26 @@
     oklch(0.985 0.015 220);
 }
 
+/* Dark mode — brighter gradient text so it's visible on dark bg */
+.dark .bz-gradient-text {
+  background: linear-gradient(135deg, #00C9FF 0%, #60A5FA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Podium card entrance ── */
+@keyframes podiumRise {
+  from { opacity: 0; transform: translateY(48px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Medal glow pulse (1st place podium) ── */
+@keyframes medalGlow {
+  0%,100% { filter: drop-shadow(0 0 20px rgba(234,179,8,0.5)); }
+  50%      { filter: drop-shadow(0 0 56px rgba(234,179,8,0.95)); }
+}
+
 /* ── Scoreboard card entrance animation ── */
 @keyframes cardSlideIn {
   0% {
