@@ -80,6 +80,18 @@ export default function PlacarPage() {
     return () => clearInterval(id)
   }, [fetchScores, fetchSettings])
 
+  // Skip null slots (fewer than 3 distinct score groups) — jump immediately
+  useEffect(() => {
+    if (revealStep === 0 || revealStep >= 13) return
+    const slotIndex = revealStep <= 4 ? 0 : revealStep <= 8 ? 1 : 2
+    const groups = computeRankGroups(scores)
+    const slots: (RankGroup | null)[] = [groups[2] ?? null, groups[1] ?? null, groups[0] ?? null]
+    if (!slots[slotIndex]) {
+      const nextStart = slotIndex === 0 ? 5 : slotIndex === 1 ? 9 : 13
+      setRevealStep(nextStart)
+    }
+  }, [revealStep, scores])
+
   // Advance reveal steps
   useEffect(() => {
     if (revealStep === 0 || revealStep >= 13) return
