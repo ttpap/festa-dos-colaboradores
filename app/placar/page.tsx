@@ -419,14 +419,18 @@ export default function PlacarPage() {
           </div>
         </div>
 
-        {/* Scoreboard */}
-        {displayScores.length === 0 ? (
-          <div className="text-center text-muted-foreground py-20">
-            <p className="text-xl">Aguardando atrações...</p>
-          </div>
-        ) : (
+        {/* Scoreboard — top 3 only when revealed */}
+        {(() => {
+          const entries = (revealed || isDone)
+            ? displayScores.filter(s => (placeMap.get(s.id) ?? 999) <= 3)
+            : displayScores
+          return entries.length === 0 ? (
+            <div className="text-center text-muted-foreground py-20">
+              <p className="text-xl">Aguardando atrações...</p>
+            </div>
+          ) : (
           <div className="flex flex-col gap-3">
-            {displayScores.map((s, idx) => {
+            {entries.map((s, idx) => {
               const place    = (revealed || isDone) ? (placeMap.get(s.id) ?? idx + 1) : null
               const isWinner = place === 1
               const barWidth = s.total_score > 0 ? Math.round((s.total_score / maxScore) * 100) : 0
@@ -495,7 +499,8 @@ export default function PlacarPage() {
               )
             })}
           </div>
-        )}
+          )
+        })()}
 
         {!isDone && (
           <p className="text-center text-xs mt-8" style={{ color: 'oklch(0.5 0.08 240)' }}>
