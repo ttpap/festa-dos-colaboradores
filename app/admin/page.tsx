@@ -10,6 +10,16 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import type { Attraction, Judge, Settings } from '@/lib/types'
 
 type AdminScore = {
@@ -49,6 +59,7 @@ export default function AdminPage() {
   const [newEventDate, setNewEventDate] = useState('2026-05-05')
   const [newJudgeLabel, setNewJudgeLabel] = useState('')
   const [newJudgeEvent, setNewJudgeEvent] = useState('2026-05-05')
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'attraction' | 'judge'; id: string; name: string } | null>(null)
 
   const checkAuth = useCallback(async () => {
     const res = await fetch('/api/admin/check')
@@ -326,7 +337,7 @@ export default function AdminPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => deleteAttraction(a.id)}
+                                onClick={() => setDeleteTarget({ type: 'attraction', id: a.id, name: a.nome })}
                                 className="text-destructive hover:text-destructive"
                               >
                                 Remover
@@ -397,7 +408,7 @@ export default function AdminPage() {
                               size="sm"
                               variant="ghost"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => deleteJudge(j.id)}
+                              onClick={() => setDeleteTarget({ type: 'judge', id: j.id, name: j.label ?? j.code })}
                             >
                               Remover
                             </Button>
@@ -537,6 +548,32 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem a certeza que quer remover <strong>&quot;{deleteTarget?.name}&quot;</strong>?
+              Esta acção não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (!deleteTarget) return
+                if (deleteTarget.type === 'attraction') deleteAttraction(deleteTarget.id)
+                else deleteJudge(deleteTarget.id)
+                setDeleteTarget(null)
+              }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
