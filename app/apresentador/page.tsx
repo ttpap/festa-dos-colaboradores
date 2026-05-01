@@ -2,41 +2,80 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
-import type { Attraction, Settings } from '@/lib/types'
+import type { Attraction } from '@/lib/types'
 
-const EVENTS: Record<string, string> = {
-  '2026-05-05': '05 de Maio de 2026',
-  '2026-05-07': '07 de Maio de 2026',
-}
+const EVENTS = [
+  { value: '2026-05-05', label: '05 de Maio', sub: 'Segunda-feira' },
+  { value: '2026-05-07', label: '07 de Maio', sub: 'Quarta-feira' },
+]
 
 export default function ApresentadorPage() {
-  const [attractions, setAttractions] = useState<Attraction[]>([])
-  const [activeEvent, setActiveEvent] = useState('2026-05-05')
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null)
+  const [allAttractions, setAllAttractions] = useState<Attraction[]>([])
   const [loading, setLoading] = useState(true)
   const [current, setCurrent] = useState<number | null>(null)
 
   const load = useCallback(async () => {
-    const [attrRes, settingsRes] = await Promise.all([
-      fetch('/api/attractions'),
-      fetch('/api/settings'),
-    ])
-    const [attrData, settingsData]: [Attraction[], Settings] = await Promise.all([
-      attrRes.json(),
-      settingsRes.json(),
-    ])
-    const event = settingsData?.active_event ?? '2026-05-05'
-    setActiveEvent(event)
-    setAttractions(
-      Array.isArray(attrData)
-        ? attrData.filter(a => a.event_date === event).sort((a, b) => a.ordem - b.ordem)
-        : []
-    )
+    const res = await fetch('/api/attractions')
+    const data = await res.json()
+    setAllAttractions(Array.isArray(data) ? data : [])
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  const list = attractions
+  const list = selectedEvent
+    ? allAttractions
+        .filter(a => a.event_date === selectedEvent)
+        .sort((a, b) => a.ordem - b.ordem)
+    : []
+
+  // Day picker
+  if (!selectedEvent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 select-none">
+        <div className="w-full max-w-sm flex flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-3">
+            <Image
+              src="/logo.jpeg"
+              alt="BZ"
+              width={64}
+              height={64}
+              className="rounded-full"
+              style={{ boxShadow: '0 0 24px rgba(0,201,255,0.35)' }}
+            />
+            <h1 className="text-2xl font-bold bz-gradient-text text-center">Sequência de Apresentações</h1>
+            <p className="text-sm text-muted-foreground text-center">Escolhe o dia da festa</p>
+          </div>
+
+          {loading ? (
+            <p className="text-muted-foreground text-sm">A carregar…</p>
+          ) : (
+            <div className="w-full flex flex-col gap-3">
+              {EVENTS.map(ev => {
+                const count = allAttractions.filter(a => a.event_date === ev.value).length
+                return (
+                  <button
+                    key={ev.value}
+                    onClick={() => { setSelectedEvent(ev.value); setCurrent(null) }}
+                    className="w-full flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/60 hover:bg-primary/5 transition-all duration-150 text-left"
+                  >
+                    <div>
+                      <p className="text-base font-bold">{ev.label}</p>
+                      <p className="text-xs text-muted-foreground">{ev.sub}</p>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{count} participante{count !== 1 ? 's' : ''} →</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const evLabel = EVENTS.find(e => e.value === selectedEvent)?.label ?? selectedEvent
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 select-none">
@@ -47,31 +86,29 @@ export default function ApresentadorPage() {
           <Image
             src="/logo.jpeg"
             alt="BZ"
-            width={48}
-            height={48}
+            width={44}
+            height={44}
             className="rounded-full shrink-0"
             style={{ boxShadow: '0 0 16px rgba(0,201,255,0.3)' }}
           />
-          <div>
-            <h1 className="text-2xl font-bold bz-gradient-text">Sequência de Apresentações</h1>
-            <p className="text-sm text-muted-foreground">
-              {EVENTS[activeEvent]} — {list.length} participante{list.length !== 1 ? 's' : ''}
-            </p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold bz-gradient-text">Sequência de Apresentações</h1>
+            <p className="text-sm text-muted-foreground">{evLabel} — {list.length} participante{list.length !== 1 ? 's' : ''}</p>
           </div>
+          <button
+            onClick={() => { setSelectedEvent(null); setCurrent(null) }}
+            className="text-xs text-muted-foreground border border-border rounded-lg px-3 py-1.5 hover:bg-secondary transition-colors shrink-0"
+          >
+            Trocar dia
+          </button>
         </div>
 
-        {loading && (
-          <p className="text-muted-foreground text-center py-16">A carregar…</p>
-        )}
-
-        {!loading && list.length === 0 && (
-          <p className="text-muted-foreground text-center py-16">
-            Nenhuma atração configurada para este evento.
-          </p>
+        {list.length === 0 && (
+          <p className="text-muted-foreground text-center py-16">Nenhuma atração configurada para este dia.</p>
         )}
 
         {/* List */}
-        {!loading && list.length > 0 && (
+        {list.length > 0 && (
           <ol className="flex flex-col gap-3">
             {list.map((a, i) => {
               const isCurrent = current === i
@@ -89,21 +126,13 @@ export default function ApresentadorPage() {
                         : 'border-border/60 bg-card hover:border-primary/40 hover:bg-card/80',
                   ].join(' ')}
                 >
-                  {/* Number */}
-                  <span
-                    className={[
-                      'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-base font-bold mt-0.5',
-                      isCurrent
-                        ? 'bg-primary text-primary-foreground'
-                        : isDone
-                          ? 'bg-muted text-muted-foreground'
-                          : 'bg-secondary text-secondary-foreground',
-                    ].join(' ')}
-                  >
+                  <span className={[
+                    'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-base font-bold mt-0.5',
+                    isCurrent ? 'bg-primary text-primary-foreground' : isDone ? 'bg-muted text-muted-foreground' : 'bg-secondary text-secondary-foreground',
+                  ].join(' ')}>
                     {isDone ? '✓' : i + 1}
                   </span>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p className={['text-lg font-bold leading-tight', isCurrent ? 'text-primary' : ''].join(' ')}>
                       {a.nome}
@@ -114,7 +143,6 @@ export default function ApresentadorPage() {
                     <p className="text-sm text-muted-foreground mt-1 italic">{a.tema}</p>
                   </div>
 
-                  {/* Current badge */}
                   {isCurrent && (
                     <span className="absolute top-3 right-4 text-xs font-semibold text-primary bg-primary/15 px-2 py-0.5 rounded-full">
                       A apresentar
@@ -127,29 +155,23 @@ export default function ApresentadorPage() {
         )}
 
         {/* Controls */}
-        {!loading && list.length > 0 && (
+        {list.length > 0 && (
           <div className="flex justify-between items-center mt-8 gap-3">
             <button
-              onClick={() => setCurrent(prev =>
-                prev === null ? 0 : prev > 0 ? prev - 1 : prev
-              )}
+              onClick={() => setCurrent(prev => prev === null ? 0 : prev > 0 ? prev - 1 : prev)}
               disabled={current === null || current === 0}
               className="flex-1 rounded-lg border border-border py-3 text-sm font-medium disabled:opacity-30 hover:bg-secondary transition-colors"
             >
               ← Anterior
             </button>
-
             <button
               onClick={() => setCurrent(null)}
               className="px-4 rounded-lg border border-border py-3 text-sm font-medium hover:bg-secondary transition-colors"
             >
               Resetar
             </button>
-
             <button
-              onClick={() => setCurrent(prev =>
-                prev === null ? 0 : prev < list.length - 1 ? prev + 1 : prev
-              )}
+              onClick={() => setCurrent(prev => prev === null ? 0 : prev < list.length - 1 ? prev + 1 : prev)}
               disabled={current === list.length - 1}
               className="flex-1 rounded-lg border border-primary/60 bg-primary/10 py-3 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors disabled:opacity-30"
             >
@@ -158,11 +180,8 @@ export default function ApresentadorPage() {
           </div>
         )}
 
-        {/* Progress */}
         {current !== null && list.length > 0 && (
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            {current + 1} de {list.length}
-          </p>
+          <p className="text-center text-xs text-muted-foreground mt-4">{current + 1} de {list.length}</p>
         )}
 
         <p className="text-center text-xs text-muted-foreground mt-10 opacity-40">
