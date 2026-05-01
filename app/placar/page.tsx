@@ -6,43 +6,56 @@ import { supabase } from '@/lib/supabase'
 import type { AttractionScore } from '@/lib/types'
 
 const MEDALS = ['🥇', '🥈', '🥉']
-const PLACE_LABELS = ['1º Lugar', '2º Lugar', '3º Lugar']
 
-// 12 reveal sub-steps total. Order per place:
-//   subStep 1 = colocação (medal + "Xº Lugar")
-//   subStep 2 = + empresa
-//   subStep 3 = + celebridade (tema)
-//   subStep 4 = + nome + pontuação
-// Delays (ms) = how long each sub-step stays on screen before next.
+function placeOrdinal(n: number) {
+  return `${n}º Lugar`
+}
+
+type RankGroup = { place: number; entries: AttractionScore[]; isTie: boolean }
+
+/** Olympic ranking: tied scores share the same place, next place skips accordingly. */
+function computeRankGroups(scores: AttractionScore[]): RankGroup[] {
+  const sorted = [...scores].sort((a, b) => b.total_score - a.total_score)
+  const groups: RankGroup[] = []
+  let currentPlace = 1
+  let i = 0
+  while (i < sorted.length) {
+    const score = sorted[i].total_score
+    const group: AttractionScore[] = []
+    while (i < sorted.length && sorted[i].total_score === score) {
+      group.push(sorted[i])
+      i++
+    }
+    groups.push({
+      place: currentPlace,
+      entries: [...group].sort((a, b) => (a.empresa ?? '').localeCompare(b.empresa ?? '')),
+      isTie: group.length > 1,
+    })
+    currentPlace += group.length
+  }
+  return groups
+}
+
+// 12 reveal sub-steps: 4 sub-steps × 3 slots (3rd-best → 2nd-best → winner)
+// subStep 1 = colocação | 2 = empresa | 3 = celebridade | 4 = nome + pts
 const STEP_DELAYS = [
-  // 3rd place
-  4500, // 1→2: colocação on screen
-  4500, // 2→3: empresa
-  4500, // 3→4: celebridade
-  6500, // 4→5: nome+pts → long pause before 2nd
-  // 2nd place
-  5000, // 5→6: colocação
-  5000, // 6→7: empresa
-  5000, // 7→8: celebridade
-  7000, // 8→9: nome+pts → longer pause before 1st
-  // 1st place
-  6000, //  9→10: colocação (build maximum suspense)
-  6000, // 10→11: empresa
-  6000, // 11→12: celebridade
-  9000, // 12→13: nome+pts → linger on winner
+  // slot 0 — 3rd-best group
+  4500, 4500, 4500, 6500,
+  // slot 1 — 2nd-best group
+  5000, 5000, 5000, 7000,
+  // slot 2 — winner group
+  6000, 6000, 6000, 9000,
 ]
 
 export default function PlacarPage() {
-  const [scores, setScores] = useState<AttractionScore[]>([])
+  const [scores, setScores]               = useState<AttractionScore[]>([])
   const [scoresRevealed, setScoresRevealed] = useState(false)
-  const [revealed, setRevealed] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [animKey, setAnimKey] = useState(0)
-
-  // 0 = not started | 1–12 = dramatic reveal in progress | 13 = done / final frame
-  const [revealStep, setRevealStep] = useState(0)
-  const [countdown, setCountdown] = useState(0) // 5→4→3→2→1 before reveal starts
-  const revealStartedRef = useRef(false)
+  const [revealed, setRevealed]           = useState(false)
+  const [loading, setLoading]             = useState(true)
+  const [animKey, setAnimKey]             = useState(0)
+  const [revealStep, setRevealStep]       = useState(0)
+  const [countdown, setCountdown]         = useState(0)
+  const revealStartedRef                  = useRef(false)
 
   const fetchScores = useCallback(async () => {
     const res = await fetch('/api/scores')
@@ -55,26 +68,19 @@ export default function PlacarPage() {
   const fetchSettings = useCallback(async () => {
     const res = await fetch('/api/settings')
     const data = await res.json()
-    const isRevealed = data.result_revealed === 'true'
-    setRevealed(isRevealed)
+    setRevealed(data.result_revealed === 'true')
     setScoresRevealed(data.scores_revealed === 'true')
   }, [])
 
-  useEffect(() => {
-    fetchScores()
-    fetchSettings()
-  }, [fetchScores, fetchSettings])
+  useEffect(() => { fetchScores(); fetchSettings() }, [fetchScores, fetchSettings])
 
-  // 10s refresh loop — runs forever; also polls settings so it catches result_revealed changes
+  // 10 s refresh loop — runs forever
   useEffect(() => {
-    const id = setInterval(() => {
-      fetchScores()
-      fetchSettings()
-    }, 10000)
+    const id = setInterval(() => { fetchScores(); fetchSettings() }, 10000)
     return () => clearInterval(id)
   }, [fetchScores, fetchSettings])
 
-  // Advance dramatic reveal steps
+  // Advance reveal steps
   useEffect(() => {
     if (revealStep === 0 || revealStep >= 13) return
     const delay = STEP_DELAYS[revealStep - 1] ?? 4000
@@ -101,7 +107,7 @@ export default function PlacarPage() {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  // 5-second countdown then launch reveal
+  // 5 s countdown then launch reveal
   useEffect(() => {
     if (!revealed || revealStartedRef.current) return
     revealStartedRef.current = true
@@ -109,24 +115,32 @@ export default function PlacarPage() {
     setCountdown(count)
     const interval = setInterval(() => {
       count--
-      if (count <= 0) {
-        clearInterval(interval)
-        setCountdown(0)
-        setRevealStep(1)
-      } else {
-        setCountdown(count)
-      }
+      if (count <= 0) { clearInterval(interval); setCountdown(0); setRevealStep(1) }
+      else { setCountdown(count) }
     }, 1000)
     return () => clearInterval(interval)
   }, [revealed])
 
+  // ── Derived state ─────────────────────────────────────────────────────────
   const sortedScores = [...scores].sort((a, b) => b.total_score - a.total_score)
-  const maxScore = Math.max(...sortedScores.map(s => s.total_score), 1)
+  const rankGroups   = computeRankGroups(scores)
+  const maxScore     = Math.max(...sortedScores.map(s => s.total_score), 1)
   const displayScores = (revealed || scoresRevealed)
     ? sortedScores
     : [...scores].sort((a, b) => a.ordem - b.ordem)
 
-  // ── LOADING ──────────────────────────────────────────────────────────────
+  // Reveal slots: [0] = 3rd-best group, [1] = 2nd-best, [2] = winner
+  const revealSlots: (RankGroup | null)[] = [
+    rankGroups[2] ?? null,
+    rankGroups[1] ?? null,
+    rankGroups[0] ?? null,
+  ]
+
+  // Olympic place map for final scoreboard medals/colours
+  const placeMap = new Map<string, number>()
+  rankGroups.forEach(g => g.entries.forEach(e => placeMap.set(e.id, g.place)))
+
+  // ── LOADING ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -175,14 +189,13 @@ export default function PlacarPage() {
     )
   }
 
-  // ── COUNTDOWN (5s before reveal) ─────────────────────────────────────────
+  // ── COUNTDOWN ─────────────────────────────────────────────────────────────
   if (revealed && revealStep === 0 && countdown > 0) {
     return (
       <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
         style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.15) 0%, oklch(0.985 0.015 220) 70%)' }}
       >
-        {/* Pulsing rings */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-96 h-96 rounded-full border border-yellow-500/20 animate-ping" style={{ animationDuration: '1s' }} />
           <div className="absolute w-64 h-64 rounded-full border border-yellow-500/30 animate-ping" style={{ animationDuration: '1s', animationDelay: '0.3s' }} />
@@ -205,17 +218,33 @@ export default function PlacarPage() {
 
   // ── DRAMATIC REVEAL (steps 1–12) ──────────────────────────────────────────
   if (revealed && revealStep > 0 && revealStep < 13) {
-    // 4 sub-steps per place: 1=colocação, 2=empresa, 3=celebridade, 4=nome+pts
-    const rankIndex = revealStep <= 4 ? 2 : revealStep <= 8 ? 1 : 0
+    const slotIndex = revealStep <= 4 ? 0 : revealStep <= 8 ? 1 : 2
     const subStep   = revealStep <= 4 ? revealStep : revealStep <= 8 ? revealStep - 4 : revealStep - 8
-    const subject   = sortedScores[rankIndex]
-    const medal     = MEDALS[rankIndex]
-    const placeLabel = PLACE_LABELS[rankIndex]
-    const isFirst   = rankIndex === 0
+    const slot      = revealSlots[slotIndex]
+
+    // Fewer than 3 distinct score groups → blank transition frame
+    if (!slot) {
+      return (
+        <div className="min-h-screen flex items-center justify-center"
+          style={{ background: 'oklch(0.985 0.015 220)' }}>
+          <Image src="/logo.jpeg" alt="BZ" width={60} height={60}
+            className="rounded-full opacity-30 animate-pulse" />
+        </div>
+      )
+    }
+
+    const isFirst    = slot.place === 1
+    const isTie      = slot.isTie
+    const numEntries = slot.entries.length
+    const medal      = slot.place <= 3 ? MEDALS[slot.place - 1] : '🏅'
+
+    // Wider container for side-by-side ties
+    const containerWidth = numEntries >= 3 ? 'max-w-4xl' : numEntries === 2 ? 'max-w-2xl' : 'max-w-md'
+    const gridCols = numEntries >= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'
 
     const bgGlow = isFirst
       ? 'radial-gradient(ellipse at 50% 40%, rgba(234,179,8,0.22) 0%, oklch(0.985 0.015 220) 70%)'
-      : rankIndex === 1
+      : slot.place === 2
         ? 'radial-gradient(ellipse at 50% 40%, rgba(160,160,160,0.1) 0%, oklch(0.985 0.015 220) 70%)'
         : 'radial-gradient(ellipse at 50% 40%, rgba(180,90,20,0.12) 0%, oklch(0.985 0.015 220) 70%)'
 
@@ -223,7 +252,7 @@ export default function PlacarPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
         style={{ background: bgGlow }}>
 
-        {/* Pulsing halo — intensifies as more is revealed */}
+        {/* Pulsing golden halo — 1st place only */}
         {isFirst && subStep >= 2 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-[28rem] h-[28rem] rounded-full border border-yellow-500/15 animate-ping" style={{ animationDuration: '3s' }} />
@@ -234,79 +263,107 @@ export default function PlacarPage() {
           </div>
         )}
 
-        <div className="text-center max-w-md w-full relative z-10">
-          {/* Sub-step 1: Colocação alone — medal + place label fade in fresh per place */}
-          <div
-            key={`title-${rankIndex}`}
-            className="mb-8 animate-in fade-in zoom-in-50 duration-1000"
-          >
-            <span className="text-9xl block leading-none mb-5"
-              style={{ filter: `drop-shadow(0 0 32px ${isFirst ? 'rgba(234,179,8,0.7)' : rankIndex === 1 ? 'rgba(200,200,200,0.45)' : 'rgba(180,90,20,0.45)'})` }}>
-              {medal}
-            </span>
+        <div className={`text-center w-full ${containerWidth} mx-auto relative z-10`}>
+
+          {/* ── Sub-step 1: Colocação + medals + EMPATE badge ── */}
+          <div key={`title-${slotIndex}`} className="mb-8 animate-in fade-in zoom-in-50 duration-1000">
+
+            {/* Medals: one per tied entry when tied, single large otherwise */}
+            {isTie ? (
+              <div className="flex justify-center gap-3 mb-4 flex-wrap">
+                {slot.entries.map((_, i) => (
+                  <span key={i}
+                    className={`leading-none ${numEntries >= 3 ? 'text-6xl md:text-7xl' : 'text-7xl md:text-8xl'}`}
+                    style={{ filter: `drop-shadow(0 0 24px ${isFirst ? 'rgba(234,179,8,0.7)' : 'rgba(200,200,200,0.45)'})` }}>
+                    {medal}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-9xl block leading-none mb-5"
+                style={{ filter: `drop-shadow(0 0 32px ${isFirst ? 'rgba(234,179,8,0.7)' : slot.place === 2 ? 'rgba(200,200,200,0.45)' : 'rgba(180,90,20,0.45)'})` }}>
+                {medal}
+              </span>
+            )}
+
             <h2 className={`text-5xl md:text-6xl font-black tracking-tight ${isFirst ? 'text-amber-500' : 'bz-gradient-text'}`}
               style={isFirst ? { textShadow: '0 0 60px rgba(234,179,8,0.4)' } : {}}>
-              {placeLabel}
+              {placeOrdinal(slot.place)}
             </h2>
+
+            {/* EMPATE badge — appears right after the place label */}
+            {isTie && (
+              <div className={`mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 font-bold text-lg
+                animate-in fade-in zoom-in-90 duration-700
+                ${isFirst
+                  ? 'bg-amber-500/15 border border-amber-500/40 text-amber-600'
+                  : 'bg-primary/10 border border-primary/30 text-primary'}`}>
+                {isFirst ? '🏆 EMPATE NA LIDERANÇA!' : '🤝 EMPATE'}
+              </div>
+            )}
           </div>
 
-          {/* Progressive card — only renders from sub-step 2 onwards */}
+          {/* ── Sub-step 2+: cards side-by-side for ties ── */}
           {subStep >= 2 && (
             <div
-              key={`card-${rankIndex}`}
-              className="rounded-2xl overflow-hidden text-left animate-in fade-in slide-in-from-bottom-6 duration-700"
-              style={{
-                background: 'oklch(1 0 0)',
-                border: isFirst ? '1px solid rgba(234,179,8,0.5)' : '1px solid rgba(0,201,255,0.25)',
-                boxShadow: isFirst
-                  ? '0 0 60px rgba(234,179,8,0.18), 0 0 120px rgba(234,179,8,0.08)'
-                  : '0 0 40px rgba(0,201,255,0.12)',
-              }}>
+              key={`cards-${slotIndex}`}
+              className={`${isTie ? `grid ${gridCols} gap-4` : ''} animate-in fade-in slide-in-from-bottom-6 duration-700`}
+            >
+              {slot.entries.map((subject) => (
+                <div key={subject.id}
+                  className="rounded-2xl overflow-hidden text-left"
+                  style={{
+                    background: 'oklch(1 0 0)',
+                    border: isFirst ? '1px solid rgba(234,179,8,0.5)' : '1px solid rgba(0,201,255,0.25)',
+                    boxShadow: isFirst
+                      ? '0 0 60px rgba(234,179,8,0.18), 0 0 120px rgba(234,179,8,0.08)'
+                      : '0 0 40px rgba(0,201,255,0.12)',
+                  }}>
 
-              {/* Empresa — sub-step 2+ */}
-              <div className="px-7 pt-7 pb-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Empresa</p>
-                <p className={`text-3xl font-bold ${isFirst ? 'text-amber-500' : 'text-primary'}`}>
-                  {subject?.empresa || '—'}
-                </p>
-              </div>
-
-              {/* Celebridade / Fantasia — sub-step 3+ */}
-              {subStep >= 3 && (
-                <div
-                  key={`tema-${rankIndex}`}
-                  className="px-7 pb-5 animate-in fade-in slide-in-from-bottom-4 duration-700"
-                >
-                  <div className="border-t border-border/50 pt-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Fantasia / Celebridade</p>
-                    <p className="text-2xl font-semibold text-foreground">{subject?.tema}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Nome + pontuação — sub-step 4 */}
-              {subStep >= 4 && (
-                <div
-                  key={`name-${rankIndex}`}
-                  className="px-7 pb-7 animate-in fade-in slide-in-from-bottom-4 duration-1000"
-                >
-                  <div className="border-t border-border/50 pt-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Participante</p>
-                    <p className={`text-3xl font-bold mb-4 ${isFirst ? 'text-amber-700' : 'text-foreground'}`}>
-                      {subject?.nome}
-                    </p>
-                    <p className={`text-7xl font-black tabular-nums ${isFirst ? 'text-amber-500' : 'text-primary'}`}
-                      style={isFirst ? { textShadow: '0 0 40px rgba(234,179,8,0.5)' } : {}}>
-                      {subject?.total_score}
-                      <span className="text-xl font-normal text-muted-foreground ml-2">pts</span>
+                  {/* Empresa — sub-step 2+ */}
+                  <div className="px-6 pt-6 pb-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Empresa</p>
+                    <p className={`${isTie ? 'text-2xl' : 'text-3xl'} font-bold ${isFirst ? 'text-amber-500' : 'text-primary'}`}>
+                      {subject?.empresa || '—'}
                     </p>
                   </div>
+
+                  {/* Celebridade / Fantasia — sub-step 3+ */}
+                  {subStep >= 3 && (
+                    <div key={`tema-${subject.id}`}
+                      className="px-6 pb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                      <div className="border-t border-border/50 pt-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Fantasia / Celebridade</p>
+                        <p className={`${isTie ? 'text-lg' : 'text-2xl'} font-semibold text-foreground`}>
+                          {subject?.tema}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nome + pontuação — sub-step 4 */}
+                  {subStep >= 4 && (
+                    <div key={`name-${subject.id}`}
+                      className="px-6 pb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                      <div className="border-t border-border/50 pt-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Participante</p>
+                        <p className={`${isTie ? 'text-xl' : 'text-3xl'} font-bold mb-3 ${isFirst ? 'text-amber-700' : 'text-foreground'}`}>
+                          {subject?.nome}
+                        </p>
+                        <p className={`${isTie ? 'text-5xl' : 'text-7xl'} font-black tabular-nums ${isFirst ? 'text-amber-500' : 'text-primary'}`}
+                          style={isFirst ? { textShadow: '0 0 40px rgba(234,179,8,0.5)' } : {}}>
+                          {subject?.total_score}
+                          <span className="text-lg font-normal text-muted-foreground ml-2">pts</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
           )}
 
-          {/* Suspense dots while next piece is loading */}
+          {/* Suspense dots while revealing */}
           {subStep < 4 && (
             <div className="flex justify-center gap-2 mt-8 opacity-50">
               <span className={`w-2.5 h-2.5 rounded-full animate-bounce ${isFirst ? 'bg-yellow-400' : 'bg-primary'}`} style={{ animationDelay: '0s' }} />
@@ -341,12 +398,12 @@ export default function PlacarPage() {
           <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] mb-2">Festa dos Colaboradores</p>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bz-gradient-text">🏆 Desfile 2026</h1>
           <div className="mt-4">
-            {isDone ? (
+            {isDone && (
               <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5">
                 <span className="w-2 h-2 bg-yellow-400 rounded-full" />
                 <span className="text-amber-500 text-sm font-semibold">🎊 Resultado final revelado!</span>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
 
@@ -358,17 +415,18 @@ export default function PlacarPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {displayScores.map((s, idx) => {
-              const rank = (revealed || isDone) ? idx : null
+              const place    = (revealed || isDone) ? (placeMap.get(s.id) ?? idx + 1) : null
+              const isWinner = place === 1
               const barWidth = s.total_score > 0 ? Math.round((s.total_score / maxScore) * 100) : 0
-              const isWinner = (revealed || isDone) && rank === 0
+              const medal    = place !== null && place >= 1 && place <= 3 ? MEDALS[place - 1] : null
 
               return (
                 <div
                   key={isDone ? s.id : `${s.id}-${animKey}`}
                   className={`relative rounded-xl overflow-hidden bg-card border transition-all duration-700
                     ${isWinner ? 'border-yellow-500/50 scale-[1.03]'
-                      : (revealed || isDone) && rank === 1 ? 'border-zinc-400/30'
-                      : (revealed || isDone) && rank === 2 ? 'border-amber-700/35'
+                      : place === 2 ? 'border-zinc-400/30'
+                      : place === 3 ? 'border-amber-700/35'
                       : 'border-border'}`}
                   style={{
                     ...(!isDone ? {
@@ -385,9 +443,11 @@ export default function PlacarPage() {
                   <div className="relative flex items-center gap-4 px-5 py-4">
                     <div className="w-10 text-center shrink-0">
                       {(revealed || isDone) ? (
-                        rank !== null && rank < 3
-                          ? <span className="text-3xl">{MEDALS[rank]}</span>
-                          : <span className="text-muted-foreground font-bold text-lg">{idx + 1}</span>
+                        medal
+                          ? <span className="text-3xl">{medal}</span>
+                          : place !== null
+                            ? <span className="text-muted-foreground font-bold text-lg">{place}</span>
+                            : <span className="text-muted-foreground/30 text-lg">·</span>
                       ) : <span className="text-muted-foreground/30 text-lg">·</span>}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -403,9 +463,9 @@ export default function PlacarPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className={`text-3xl font-bold tabular-nums ${
-                        (revealed || isDone) && rank === 0 ? 'text-amber-500'
-                        : (revealed || isDone) && rank === 1 ? 'text-zinc-300'
-                        : (revealed || isDone) && rank === 2 ? 'text-amber-500'
+                        isWinner ? 'text-amber-500'
+                        : place === 2 ? 'text-zinc-400'
+                        : place === 3 ? 'text-amber-600'
                         : 'text-primary'}`}>
                         {s.total_score}
                       </p>
