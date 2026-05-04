@@ -20,3 +20,29 @@ export async function GET() {
     judges: judgesRes.data ?? [],
   })
 }
+
+export async function DELETE(request: Request) {
+  const session = await getSession()
+  if (!session.isAdmin) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
+  const { event_date } = await request.json()
+  if (!event_date) return NextResponse.json({ error: 'event_date obrigatório' }, { status: 400 })
+
+  const supabase = createAdminClient()
+
+  const { data: attractions } = await supabase
+    .from('attractions')
+    .select('id')
+    .eq('event_date', event_date)
+
+  const ids = (attractions ?? []).map((a: { id: string }) => a.id)
+  if (ids.length === 0) return NextResponse.json({ deleted: 0 })
+
+  const { count, error } = await supabase
+    .from('votes')
+    .delete({ count: 'exact' })
+    .in('attraction_id', ids)
+
+  if (error) return NextResponse.json({ error }, { status: 500 })
+  return NextResponse.json({ deleted: count ?? 0 })
+}

@@ -61,6 +61,7 @@ export default function AdminPage() {
   const [newJudgeEvent, setNewJudgeEvent] = useState('2026-05-05')
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'attraction' | 'judge'; id: string; name: string } | null>(null)
   const [revealConfirmOpen, setRevealConfirmOpen] = useState(false)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
 
   const checkAuth = useCallback(async () => {
     const res = await fetch('/api/admin/check')
@@ -393,8 +394,7 @@ export default function AdminPage() {
                       {judges.map(j => (
                         <li key={j.id} className="flex items-center justify-between gap-3 py-2 border-b last:border-0">
                           <div className="flex items-center gap-3 min-w-0">
-                            <Badge variant="secondary" className="font-mono shrink-0">{j.code}</Badge>
-                            {j.label && <span className="text-sm truncate">{j.label}</span>}
+                            <span className="text-sm truncate">{j.label ?? '—'}</span>
                             {j.event_date && (
                               <Badge variant="outline" className="text-xs shrink-0">
                                 {j.event_date === '2026-05-05' ? 'Dia 5' : 'Dia 7'}
@@ -500,6 +500,17 @@ export default function AdminPage() {
                     </Button>
                   </div>
 
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Resetar Votos</Label>
+                    <Button
+                      variant="outline"
+                      onClick={() => setResetConfirmOpen(true)}
+                      className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                    >
+                      🗑️ Apagar votos do evento
+                    </Button>
+                  </div>
+
                 </CardContent>
               </Card>
 
@@ -514,9 +525,9 @@ export default function AdminPage() {
                       <thead>
                         <tr className="border-b">
                           <th className="text-left py-2 pr-4 font-medium">Atração</th>
-                          {adminScores.judges.map(j => (
+                          {adminScores.judges.map((j, idx) => (
                             <th key={j.id} className="text-center py-2 px-2 font-semibold">
-                              {j.label ?? <span className="font-mono text-xs text-muted-foreground">{j.code}</span>}
+                              {j.label ?? `J${idx + 1}`}
                             </th>
                           ))}
                           <th className="text-center py-2 px-2 font-medium">Total</th>
@@ -600,6 +611,41 @@ export default function AdminPage() {
               }}
             >
               🎬 Sim, revelar agora!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>🗑️ Resetar votos?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Isto vai apagar <strong>todos os votos</strong> do evento <strong>{EVENTS.find(e => e.value === activeEvent)?.label}</strong>.<br /><br />
+              Esta acção não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                const res = await fetch('/api/admin/scores', {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ event_date: activeEvent }),
+                })
+                const data = await res.json()
+                if (res.ok) {
+                  toast.success(`${data.deleted} voto(s) apagado(s)`)
+                  loadData()
+                } else {
+                  toast.error('Erro ao resetar votos')
+                }
+                setResetConfirmOpen(false)
+              }}
+            >
+              Sim, apagar tudo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
