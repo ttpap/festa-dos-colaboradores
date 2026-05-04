@@ -135,12 +135,12 @@ export default function ApresentadorPage() {
 
                   <div className="flex-1 min-w-0">
                     <p className={['text-lg font-bold leading-tight', isCurrent ? 'text-primary' : ''].join(' ')}>
-                      {a.nome}
+                      {a.tema}
                     </p>
+                    <p className="text-sm font-medium text-muted-foreground mt-0.5">{a.nome}</p>
                     {a.empresa && (
-                      <p className="text-sm font-medium text-muted-foreground mt-0.5">{a.empresa}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{a.empresa}</p>
                     )}
-                    <p className="text-sm text-muted-foreground mt-1 italic">{a.tema}</p>
                   </div>
 
                   {isCurrent && (
