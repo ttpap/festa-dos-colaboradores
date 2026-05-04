@@ -331,8 +331,8 @@ export default function AdminPage() {
                           {evAttractions.map(a => (
                             <li key={a.id} className="flex items-center justify-between gap-4 py-2 border-b last:border-0">
                               <div>
-                                <p className="font-medium text-sm">{a.nome}</p>
-                                <p className="text-xs text-muted-foreground">{a.tema}</p>
+                                <p className="font-medium text-sm">{a.tema}</p>
+                                <p className="text-xs text-muted-foreground">{a.nome}</p>
                                 {a.empresa && <p className="text-xs text-muted-foreground font-medium">{a.empresa}</p>}
                               </div>
                               <Button
@@ -540,8 +540,8 @@ export default function AdminPage() {
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-bold text-muted-foreground w-5">{idx + 1}º</span>
                                     <div>
-                                      <p className="font-medium">{a.nome}</p>
-                                      <p className="text-xs text-muted-foreground">{a.tema}</p>
+                                      <p className="font-medium">{a.tema}</p>
+                                      <p className="text-xs text-muted-foreground">{a.nome}</p>
                                     </div>
                                   </div>
                                 </td>

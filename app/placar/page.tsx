@@ -74,10 +74,10 @@ function PodiumCard({ group, isFirst }: { group: RankGroup; isFirst?: boolean })
             </div>
             <p className={`font-bold truncate ${isFirst ? 'text-base md:text-lg' : 'text-sm md:text-base'}`}
               style={{ color: empresaCol }}>
-              {e.empresa || '—'}
+              {e.tema || '—'}
             </p>
-            <p className="text-xs mt-1 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{e.tema}</p>
-            <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{e.nome}</p>
+            <p className="text-xs mt-1 truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{e.nome}</p>
+            <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{e.empresa}</p>
             <p className={`font-black tabular-nums mt-2 ${isFirst ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}`}
               style={{ color: scoreCol, ...(isFirst ? { textShadow: '0 0 40px rgba(234,179,8,0.55)' } : {}) }}>
               {e.total_score}
@@ -523,8 +523,8 @@ export default function PlacarPage() {
                         <span className="text-muted-foreground/30 text-lg">·</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-lg leading-tight truncate text-foreground">{s.nome}</p>
-                        <p className="text-muted-foreground text-sm truncate">{s.tema}</p>
+                        <p className="font-bold text-lg leading-tight truncate text-foreground">{s.tema}</p>
+                        <p className="text-muted-foreground text-sm truncate">{s.nome}</p>
                         {s.empresa && <p className="text-xs truncate font-medium text-primary/70">{s.empresa}</p>}
                       </div>
                       <div className="text-right shrink-0">

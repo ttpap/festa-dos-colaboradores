@@ -278,8 +278,8 @@ export default function JuradoPage({ params }: { params: Promise<{ code: string 
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <CardTitle className="text-base">{a.nome}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{a.tema}</p>
+                        <CardTitle className="text-base">{a.tema}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{a.nome}</p>
                         {a.empresa && <p className="text-xs font-medium text-muted-foreground">{a.empresa}</p>}
                       </div>
                       {submitted && (
